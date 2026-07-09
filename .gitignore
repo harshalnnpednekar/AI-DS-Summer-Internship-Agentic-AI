@@ -1,5 +1,13 @@
+# Environment Variables
 .env
+.env.*
+!.env.example
 backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+
+# Python / Backend
 venv/
 backend/venv/
 __pycache__/
@@ -8,10 +16,14 @@ backend/__pycache__/
 backend/*.pyc
 .pytest_cache/
 backend/.pytest_cache/
+
+# IDE & Editor Configs
 .idea/
 backend/.idea/
 .vscode/
 backend/.vscode/
+
+# AI Agent Configs
 .claude/
 .agents/
 .gemini/

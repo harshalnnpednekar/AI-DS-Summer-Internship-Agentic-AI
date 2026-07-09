@@ -1,0 +1,100 @@
+.defaulter-action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  background-color: #FAFAFA;
+}
+
+.defaulter-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.vertical-divider {
+  width: 1px;
+  height: 20px;
+  background-color: var(--color-border);
+  margin: 0 0.5rem;
+}
+
+.text-danger { color: var(--color-danger); }
+.text-success { color: var(--color-success); }
+.text-secondary { color: var(--color-text-secondary); }
+.font-semibold { font-weight: 600; }
+.font-medium { font-weight: 500; }
+.text-sm { font-size: 0.875rem; }
+.ml-1 { margin-left: 0.25rem; }
+.flex-center { display: flex; align-items: center; }
+
+.action-badge {
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.defaulter-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.class-badge {
+  background-color: var(--color-primary);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.progress-cell {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.progress-bar-bg {
+  width: 100px;
+  height: 6px;
+  background-color: var(--color-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+}
+
+.bg-danger { background-color: var(--color-danger); }
+.bg-warning { background-color: var(--color-warning); }
+
+.status-badge-outline {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.status-badge-outline.risk {
+  color: var(--color-warning);
+  border-color: rgba(245, 158, 11, 0.5);
+  background-color: var(--color-warning-bg);
+}
+
+.status-badge-outline.critical {
+  color: var(--color-danger);
+  border-color: rgba(239, 68, 68, 0.5);
+  background-color: var(--color-danger-bg);
+}
+
+.selected-row {
+  background-color: #F0F9FF !important;
+}
