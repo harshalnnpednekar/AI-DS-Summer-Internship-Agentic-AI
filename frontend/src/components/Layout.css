@@ -9,11 +9,12 @@
 .sidebar {
   width: 260px;
   background-color: var(--color-bg-sidebar);
-  color: var(--color-text-inverse);
+  color: var(--color-text-primary);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   transition: width var(--transition-normal);
+  border-right: 1px solid var(--color-border);
 }
 
 .sidebar-brand {
@@ -21,27 +22,28 @@
   align-items: center;
   padding: 1.5rem;
   gap: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .brand-logo {
-  background-color: rgba(255, 255, 255, 0.1);
-  padding: 0.5rem;
-  border-radius: var(--radius-md);
+  background-color: transparent;
+  padding: 0.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform var(--transition-normal);
 }
 
-.brand-logo:hover {
-  transform: rotate(180deg);
+.brand-icon-image {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
 }
 
 .brand-text h2 {
   font-size: 1.125rem;
   font-weight: 700;
-  color: var(--color-text-inverse);
+  color: var(--color-text-primary);
   margin-bottom: 0.125rem;
   letter-spacing: 0.5px;
 }
@@ -80,26 +82,23 @@
 .nav-item {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1.5rem;
-  color: #CBD5E1;
+  padding: 0.75rem 1rem;
+  margin: 0.25rem 1rem;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
   text-decoration: none;
   transition: all var(--transition-fast);
   gap: 0.75rem;
-  border-left: 3px solid transparent;
-  position: relative;
-  overflow: hidden;
 }
 
 .nav-item:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  color: var(--color-text-inverse);
-  padding-left: 1.75rem;
+  background-color: var(--color-bg-app);
+  color: var(--color-text-primary);
 }
 
 .nav-item.active {
-  background-color: var(--color-secondary);
-  color: var(--color-text-inverse);
-  border-left-color: var(--color-secondary-light);
+  background-color: var(--color-secondary-light);
+  color: var(--color-secondary);
 }
 
 .nav-item span {
@@ -125,7 +124,7 @@
 
 .sidebar-footer {
   padding: 1.25rem 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--color-border);
 }
 
 .user-profile {
@@ -148,14 +147,14 @@
   font-size: 0.875rem;
 }
 
-.user-avatar.hk-avatar {
+.user-avatar.mv-avatar {
   background-color: var(--color-secondary);
 }
 
 .user-info h4 {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-text-inverse);
+  color: var(--color-text-primary);
   margin: 0;
 }
 
@@ -182,7 +181,7 @@
 }
 
 .logout-btn:hover {
-  color: var(--color-text-inverse);
+  color: var(--color-text-primary);
   transform: translateX(5px);
 }
 
@@ -192,7 +191,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background-color: #F8FAFC;
+  background-color: var(--color-bg-app);
 }
 
 .top-header {

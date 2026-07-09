@@ -7,6 +7,8 @@ const MarkAttendance = () => {
   const [topic, setTopic] = useState('');
   const [totalStudents, setTotalStudents] = useState('');
   const [studentsPresent, setStudentsPresent] = useState('');
+  const [absentees, setAbsentees] = useState([]);
+  const [currentRoll, setCurrentRoll] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -14,12 +16,31 @@ const MarkAttendance = () => {
     setTopic('');
     setTotalStudents('');
     setStudentsPresent('');
+    setAbsentees([]);
+    setCurrentRoll('');
+  };
+
+  const handleRollKeyDown = (e) => {
+    if (e.key === ',' || e.key === 'Enter') {
+      e.preventDefault();
+      const val = currentRoll.trim().replace(/,/g, '');
+      if (val && !absentees.includes(val)) {
+        setAbsentees([...absentees, val]);
+      }
+      setCurrentRoll('');
+    } else if (e.key === 'Backspace' && !currentRoll && absentees.length > 0) {
+      // Remove last tag if backspace is pressed on empty input
+      setAbsentees(absentees.slice(0, -1));
+    }
+  };
+
+  const removeAbsentee = (rollToRemove) => {
+    setAbsentees(absentees.filter(roll => roll !== rollToRemove));
   };
 
   return (
     <div className="page-container">
       <div className="page-header">
-        <div className="breadcrumb">Dashboard &gt; Mark Attendance</div>
         <h1 className="page-title">Mark Lecture Attendance</h1>
         <p className="page-subtitle">Submit attendance details for your lecture. Data is reflected immediately in the tracking dashboard.</p>
       </div>
@@ -33,22 +54,41 @@ const MarkAttendance = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="attendance-form">
-            <div className="form-group">
-              <label>Class & Subject <span className="text-danger">*</span></label>
-              <select className="form-select" defaultValue="SE-A">
-                <option value="SE-A">SE-A — Data Structures & Algorithms</option>
-                <option value="TE-A">TE-A — Database Management</option>
-              </select>
-              <div className="field-hint">
-                <span className="badge badge-dark">SE-A</span>
-                <span className="hint-text">· 42 lectures held so far · Current avg: <strong className="text-success">88%</strong></span>
+            <div className="form-row">
+              <div className="form-group half">
+                <label>Class <span className="text-danger">*</span></label>
+                <select className="form-select" defaultValue="" required>
+                  <option value="" disabled>Select a class</option>
+                  <option value="SE-A">SE-A (Second Year)</option>
+                  <option value="SE-B">SE-B (Second Year)</option>
+                  <option value="TE-A">TE-A (Third Year)</option>
+                  <option value="TE-B">TE-B (Third Year)</option>
+                  <option value="BE-A">BE-A (Final Year)</option>
+                  <option value="BE-B">BE-B (Final Year)</option>
+                </select>
+              </div>
+              <div className="form-group half">
+                <label>Subject <span className="text-danger">*</span></label>
+                <select className="form-select" defaultValue="" required>
+                  <option value="" disabled>Select a subject</option>
+                  <option value="DSA">Data Structures & Algorithms</option>
+                  <option value="DBMS">Database Management Systems</option>
+                  <option value="AI">Artificial Intelligence</option>
+                  <option value="ML">Machine Learning</option>
+                  <option value="CN">Computer Networks</option>
+                  <option value="OS">Operating Systems</option>
+                  <option value="DS">Data Science & Analytics</option>
+                  <option value="DL">Deep Learning</option>
+                  <option value="BDA">Big Data Analytics</option>
+                  <option value="SE">Software Engineering</option>
+                </select>
               </div>
             </div>
 
             <div className="form-group">
               <label>Lecture Date <span className="text-danger">*</span></label>
               <div className="input-with-icon">
-                <input type="date" defaultValue="2026-07-09" className="form-input" required />
+                <input type="date" className="form-input" required />
                 {/* Modern browsers show their own calendar icon, this is styled appropriately in CSS */}
               </div>
             </div>
@@ -58,7 +98,7 @@ const MarkAttendance = () => {
               <input 
                 type="text" 
                 className="form-input" 
-                placeholder="e.g. Binary Trees — Traversal Methods" 
+                placeholder="Enter the specific topic or module covered during the lecture" 
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 required 
@@ -71,7 +111,7 @@ const MarkAttendance = () => {
                 <input 
                   type="number" 
                   className="form-input" 
-                  placeholder="e.g. 60" 
+                  placeholder="Total enrolled students" 
                   min="1"
                   value={totalStudents}
                   onChange={(e) => setTotalStudents(e.target.value)}
@@ -83,7 +123,7 @@ const MarkAttendance = () => {
                 <input 
                   type="number" 
                   className="form-input" 
-                  placeholder="e.g. 52" 
+                  placeholder="Number of attendees" 
                   min="0"
                   max={totalStudents || 100}
                   value={studentsPresent}
@@ -91,6 +131,27 @@ const MarkAttendance = () => {
                   required 
                 />
               </div>
+            </div>
+
+            <div className="form-group">
+              <label>Absentee Roll Numbers</label>
+              <div className="tags-input-container form-input">
+                {absentees.map(roll => (
+                  <span key={roll} className="tag-pill">
+                    {roll}
+                    <button type="button" onClick={() => removeAbsentee(roll)}>&times;</button>
+                  </span>
+                ))}
+                <input 
+                  type="text" 
+                  className="tag-input"
+                  placeholder={absentees.length === 0 ? "Type roll number and press comma..." : ""} 
+                  value={currentRoll}
+                  onChange={(e) => setCurrentRoll(e.target.value)}
+                  onKeyDown={handleRollKeyDown}
+                />
+              </div>
+              <span className="hint-text" style={{ marginTop: '0.5rem', display: 'block' }}>Press comma or Enter to add a roll number.</span>
             </div>
 
             <button type="submit" className="btn btn-primary submit-btn">
@@ -101,10 +162,9 @@ const MarkAttendance = () => {
 
         {/* Info Column */}
         <div className="card info-card">
-          <div className="card-header border-none">
-            <h2>How It Works</h2>
-          </div>
-          
+          <h2 style={{ margin: '0 0 1.5rem 0', fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+            How It Works
+          </h2>
           <div className="steps-list">
             <div className="step-item">
               <div className="step-number">1</div>

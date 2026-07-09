@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -18,6 +18,28 @@ const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const timeString = currentTime.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  }).toLowerCase();
+
+  const dateString = currentTime.toLocaleDateString('en-US', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+
   // Redirect to login if unauthenticated (mock behavior for layout)
   // In a real app this would check a token
 
@@ -27,7 +49,7 @@ const Layout = () => {
       <aside className="sidebar">
         <div className="sidebar-brand">
           <div className="brand-logo">
-            <Cpu size={24} color="var(--color-secondary)" />
+            <img src="/VESIT LOGO.jpg" alt="VESIT Logo" className="brand-icon-image" />
           </div>
           <div className="brand-text">
             <h2>VESIT</h2>
@@ -80,9 +102,9 @@ const Layout = () => {
 
         <div className="sidebar-footer">
           <div className="user-profile">
-            <div className="user-avatar hk-avatar">HK</div>
+            <div className="user-avatar mv-avatar">MV</div>
             <div className="user-info">
-              <h4>Dr. H. Khandelwal</h4>
+              <h4>Dr. M. Vijayalakshmi</h4>
               <p>Head of Department</p>
             </div>
           </div>
@@ -100,14 +122,14 @@ const Layout = () => {
           <div className="header-left">
             <div className="agent-status">
               <Cpu size={18} />
-              <span>Department Management Agent</span>
+              <span>OmniSync</span>
               <span className="badge badge-success" style={{ marginLeft: '8px', fontSize: '10px' }}>LIVE</span>
             </div>
           </div>
           <div className="header-right">
             <div className="datetime">
-              <strong>04:52 pm</strong>
-              <p>Thu, 9 Jul, 2026</p>
+              <strong>{timeString}</strong>
+              <p>{dateString}</p>
             </div>
             <button className="notification-btn hover-scale">
               <span className="notification-icon">🔔</span>
