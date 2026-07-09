@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_NAME:-events_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend_api
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@postgres:5432/${DB_NAME:-events_db}
+      API_PORT: 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
+  scheduler:
+    build:
+      context: ./scheduler
+      dockerfile: Dockerfile
+    container_name: scheduler_agent
+    environment:
+      API_BASE_URL: http://backend:8000
+      SCHEDULER_INTERVAL_MINUTES: 5
+      NOTIFICATION_WINDOW_DAYS: 3
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      LOG_LEVEL: INFO
+      MOCK_API_ENABLED: "false"
+    ports:
+      - "8001:8001"
+    depends_on:
+      - backend
+    networks:
+      - app_network
+
+  email_service:
+    build:
+      context: ./email_service
+      dockerfile: Dockerfile
+    container_name: email_service
+    environment:
+      API_BASE_URL: http://backend:8000
+      SMTP_SERVER: ${SMTP_SERVER:-localhost}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      LOG_LEVEL: INFO
+    ports:
+      - "8002:8002"
+    depends_on:
+      - backend
+    networks:
+      - app_network
+
+volumes:
+  postgres_data:
+
+networks:
+  app_network:
+    driver: bridge

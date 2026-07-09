@@ -6,16 +6,25 @@ backend/.env
 backend/.env.*
 frontend/.env
 frontend/.env.*
+scheduler/.env
+scheduler/.env.*
 
 # Python / Backend
 venv/
 backend/venv/
+scheduler/venv/
 __pycache__/
 backend/__pycache__/
+scheduler/__pycache__/
 *.pyc
 backend/*.pyc
+scheduler/*.pyc
 .pytest_cache/
 backend/.pytest_cache/
+scheduler/.pytest_cache/
+
+# Scheduler logs
+scheduler/scheduler.log
 
 # IDE & Editor Configs
 .idea/
