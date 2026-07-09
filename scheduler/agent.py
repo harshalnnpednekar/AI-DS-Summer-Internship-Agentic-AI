@@ -1,8 +1,9 @@
 import os
+import requests
 from typing import TypedDict, List, Dict, Any
 from datetime import datetime
 from langgraph.graph import StateGraph, END
-from groq import Groq  # <-- CHANGED: Import Groq
+from groq import Groq
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -14,15 +15,16 @@ class NotificationState(TypedDict):
     notification_message: str
     status: str
     error: str
+    notification_data: Dict[str, Any]
 
 class NotificationAgent:
     def __init__(self, api_key: str = None):
-        # <-- CHANGED: Initialize the Groq client
         self.client = Groq(
             api_key=api_key or os.getenv("GROQ_API_KEY")
         )
-        # <-- CHANGED: Use a blazing fast Groq model (like Llama 3)
-        self.model = "llama-3.1-8b-instant" 
+        self.model = "llama-3.1-8b-instant"
+        # Email service URL for sending notifications
+        self.email_service_url = os.getenv("EMAIL_SERVICE_URL", "http://localhost:8002")
 
     def generate_notification_message(self, state: NotificationState) -> NotificationState:
         event = state["event"]
@@ -42,7 +44,6 @@ BODY: [email body]
 """
         
         try:
-            # <-- CHANGED: Groq uses the standard Chat Completions endpoint
             message = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
@@ -51,7 +52,6 @@ BODY: [email body]
                 max_tokens=500,
             )
             
-            # <-- CHANGED: Extracting text from the Groq response payload
             response_text = message.choices[0].message.content
             state["notification_message"] = response_text
             state["status"] = "message_generated"
@@ -87,7 +87,14 @@ BODY: [email body]
             "event_id": event.get("event_id"),
             "event_title": event.get("title"),
             "event_date": event.get("date"),
-            "student_emails": [s.get("email") for s in students],
+            "students": [
+                {
+                    "name": s.get("name", "Student"),
+                    "email": s.get("email"),
+                    "department": s.get("department"),
+                }
+                for s in students
+            ],
             "notification_message": state.get("notification_message", ""),
             "created_at": datetime.now().isoformat()
         }
@@ -97,9 +104,29 @@ BODY: [email body]
         return state
 
     def log_notification_attempt(self, state: NotificationState) -> NotificationState:
+        if state.get("status") == "send_failed":
+            logger.error(f"Failed to send notification for event {state['event'].get('event_id')}: {state.get('error')}")
+            return state
+            
         logger.info(f"Notification prepared for event: {state['event'].get('event_id')}")
         logger.info(f"Recipients: {len(state['students'])} students")
         state["status"] = "logged"
+        return state
+    
+    def send_notification(self, state: NotificationState) -> NotificationState:
+        
+        payload = state.get("notification_data")
+        try:
+            logger.info(f"Sending payload to {self.email_service_url}/notify")
+            response = requests.post(f"{self.email_service_url}/notify", json=payload, timeout=15)
+            response.raise_for_status()
+            state["status"] = "sent"
+        except Exception as e:
+            logger.error(f"send_notification exception: {e}")
+            if hasattr(e, 'response') and e.response is not None:
+                logger.error(f"Response: {e.response.text}")
+            state["error"] = str(e)
+            state["status"] = "send_failed"
         return state
 
 
@@ -114,13 +141,15 @@ class NotificationWorkflow:
         workflow.add_node("validate", self.agent.validate_event_data)
         workflow.add_node("generate_message", self.agent.generate_notification_message)
         workflow.add_node("prepare_payload", self.agent.prepare_notification_payload)
+        workflow.add_node("send_notification", self.agent.send_notification)
         workflow.add_node("log_attempt", self.agent.log_notification_attempt)
         
         workflow.set_entry_point("validate")
         
         workflow.add_edge("validate", "generate_message")
         workflow.add_edge("generate_message", "prepare_payload")
-        workflow.add_edge("prepare_payload", "log_attempt")
+        workflow.add_edge("prepare_payload", "send_notification")
+        workflow.add_edge("send_notification", "log_attempt")
         workflow.add_edge("log_attempt", END)
         
         return workflow.compile()

@@ -83,9 +83,7 @@ class SchedulerManager:
             if self.notification_checker.should_notify(event.get("date")):
                 students = self.event_fetcher.get_students_for_event(event)
                 
-                if event.get("audience") == "all_students":
-                    self.trigger_callbacks(event, students)
-                elif event.get("audience") == "dept_only":
+                if students:
                     self.trigger_callbacks(event, students)
 
     def start(self):
