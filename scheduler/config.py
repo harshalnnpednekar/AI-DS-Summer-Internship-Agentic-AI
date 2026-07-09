@@ -6,6 +6,8 @@ load_dotenv()
 
 class Config:
     API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
+    EMAIL_SERVICE_URL = os.getenv("EMAIL_SERVICE_URL", "http://localhost:8002")
+    SCHEDULER_INTERVAL_MINUTES = int(os.getenv("SCHEDULER_INTERVAL_MINUTES", 5))
     SCHEDULER_INTERVAL_MINUTES = int(os.getenv("SCHEDULER_INTERVAL_MINUTES", 5))
     NOTIFICATION_WINDOW_DAYS = int(os.getenv("NOTIFICATION_WINDOW_DAYS", 3))
     ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")

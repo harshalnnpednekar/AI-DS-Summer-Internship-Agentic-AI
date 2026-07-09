@@ -1,3 +1,11 @@
+import sys
+import asyncio
+
+# Windows + Python 3.12+ uses ProactorEventLoop by default, which is
+# incompatible with psycopg async. Force SelectorEventLoop on Windows.
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import events, students, logs
