@@ -1,0 +1,157 @@
+2026-07-08 17:28:42,906 - INFO - __main__ - PDF loaded: academic_calendar.pdf
+2026-07-08 17:28:43,039 - INFO - utils - Page 1 read successfully.
+2026-07-08 17:28:43,172 - INFO - utils - Page 2 read successfully.
+2026-07-08 17:28:43,175 - WARNING - parser - Duplicate event detected: 'Beginning of the Term : UG program' on 2025-07-21. Skipping.
+2026-07-08 17:28:43,175 - WARNING - parser - Duplicate event detected: 'Class Council Election' on 2025-07-31. Skipping.
+2026-07-08 17:28:43,175 - WARNING - parser - Duplicate event detected: 'College Council Election' on 2025-08-04. Skipping.
+2026-07-08 17:28:43,175 - WARNING - parser - Duplicate event detected: 'Society Council Interview' on 2025-08-08. Skipping.
+2026-07-08 17:28:43,175 - WARNING - parser - Duplicate event detected: 'Meeting of student’s Council' on 2025-08-18. Skipping.
+2026-07-08 17:28:43,177 - WARNING - parser - Duplicate event detected: 'Anti Ragging week' on 2026-08-18. Skipping.
+2026-07-08 17:28:43,177 - WARNING - parser - Duplicate event detected: 'University IAT KT' on 2026-08-18. Skipping.
+2026-07-08 17:28:43,177 - WARNING - parser - Duplicate event detected: 'First defaulter’s List' on 2025-08-22. Skipping.
+2026-07-08 17:28:43,177 - WARNING - parser - Duplicate event detected: 'Subject Group Advisors Meetings' on 2026-08-18. Skipping.
+2026-07-08 17:28:43,178 - WARNING - parser - Duplicate event detected: 'Ganpati Chaturthi (Mid Sem Break)' on 2026-08-27. Skipping.
+2026-07-08 17:28:43,178 - WARNING - parser - Duplicate event detected: 'Teachers Day Celebrations' on 2025-09-05. Skipping.
+2026-07-08 17:28:43,178 - WARNING - parser - Duplicate event detected: 'Mid Term Test + Honor/Minor test' on 2026-09-08. Skipping.
+2026-07-08 17:28:43,178 - WARNING - parser - Duplicate event detected: 'Second defaulter’s List' on 2025-09-22. Skipping.
+2026-07-08 17:28:43,178 - WARNING - parser - Duplicate event detected: 'Open Day for Mid Term' on 2025-09-24. Skipping.
+2026-07-08 17:28:43,178 - WARNING - parser - Duplicate event detected: 'Indoor Sphurti' on 2026-09-25. Skipping.
+2026-07-08 17:28:43,179 - ERROR - parser - Date conversion error: Could not parse date: '*TBA'. Skipping event: 'SORT Event'
+2026-07-08 17:28:43,180 - WARNING - parser - Duplicate event detected: 'Subject Group Advisors Meetings' on 2026-09-29. Skipping.
+2026-07-08 17:28:43,180 - WARNING - parser - Duplicate event detected: 'World Students Day' on 2025-10-15. Skipping.
+2026-07-08 17:28:43,180 - WARNING - parser - Duplicate event detected: 'Critical defaulter’s List' on 2025-10-17. Skipping.
+2026-07-08 17:28:43,180 - WARNING - parser - Duplicate event detected: 'Diwali break' on 2026-10-20. Skipping.
+2026-07-08 17:28:43,181 - WARNING - parser - Duplicate event detected: 'Re-mid Term (Medical, etc)' on 2026-10-27. Skipping.
+2026-07-08 17:28:43,181 - WARNING - parser - Duplicate event detected: 'Term End & Last instruction day' on 2025-10-31. Skipping.
+2026-07-08 17:28:43,181 - ERROR - parser - Date conversion error: Could not parse date: 'Oral/Practical Exam'. Skipping event: '1st Nov to 7th Nov 25, Sat - Friday'
+2026-07-08 17:28:43,181 - ERROR - parser - Date conversion error: Could not parse date: 'SE, TE, BE (SEM III, V and VII)'. Skipping event: '13th Nov to 29th Nov 25 , Thurs - Sat'
+2026-07-08 17:28:43,181 - WARNING - parser - Duplicate event detected: 'Last Date of CAP checking' on 2025-12-04. Skipping.
+2026-07-08 17:28:43,181 - WARNING - parser - Duplicate event detected: 'Provisional Result' on 2025-12-16. Skipping.
+2026-07-08 17:28:43,181 - WARNING - parser - Duplicate event detected: 'Open Day' on 2025-12-17. Skipping.
+2026-07-08 17:28:43,182 - WARNING - parser - Duplicate event detected: 'Final Result' on 2025-12-20. Skipping.
+2026-07-08 17:28:43,182 - WARNING - parser - Duplicate event detected: 'Re-exam for End Semester Examination' on 2026-01-12. Skipping.
+2026-07-08 17:28:43,182 - WARNING - parser - Duplicate event detected: 'Commencement of New Term' on 2026-01-19. Skipping.
+2026-07-08 17:28:43,182 - WARNING - parser - Duplicate event detected: 'Result of Re-exam' on 2026-02-09. Skipping.
+2026-07-08 17:28:43,182 - INFO - __main__ - Events extracted: Found 34 potential raw events.
+2026-07-08 17:28:43,183 - INFO - __main__ - Validation completed.
+2026-07-08 17:28:43,185 - INFO - __main__ - JSON exported: 34 valid events securely written to output/events.json
+2026-07-08 17:42:43,816 - INFO - __main__ - PDF loaded: academic_calendar.pdf
+2026-07-08 17:42:43,946 - INFO - utils - Page 1 read successfully.
+2026-07-08 17:42:44,075 - INFO - utils - Page 2 read successfully.
+2026-07-08 17:42:44,078 - WARNING - parser - Duplicate event detected: 'Beginning of the Term : UG program' on 2025-07-21. Skipping.
+2026-07-08 17:42:44,078 - WARNING - parser - Duplicate event detected: 'Class Council Election' on 2025-07-31. Skipping.
+2026-07-08 17:42:44,078 - WARNING - parser - Duplicate event detected: 'College Council Election' on 2025-08-04. Skipping.
+2026-07-08 17:42:44,078 - WARNING - parser - Duplicate event detected: 'Society Council Interview' on 2025-08-08. Skipping.
+2026-07-08 17:42:44,078 - WARNING - parser - Duplicate event detected: 'Meeting of student’s Council' on 2025-08-18. Skipping.
+2026-07-08 17:42:44,079 - WARNING - parser - Duplicate event detected: 'Anti Ragging week' on 2026-08-18. Skipping.
+2026-07-08 17:42:44,079 - WARNING - parser - Duplicate event detected: 'University IAT KT' on 2026-08-18. Skipping.
+2026-07-08 17:42:44,079 - WARNING - parser - Duplicate event detected: 'First defaulter’s List' on 2025-08-22. Skipping.
+2026-07-08 17:42:44,079 - WARNING - parser - Duplicate event detected: 'Subject Group Advisors Meetings' on 2026-08-18. Skipping.
+2026-07-08 17:42:44,079 - WARNING - parser - Duplicate event detected: 'Ganpati Chaturthi (Mid Sem Break)' on 2026-08-27. Skipping.
+2026-07-08 17:42:44,079 - WARNING - parser - Duplicate event detected: 'Teachers Day Celebrations' on 2025-09-05. Skipping.
+2026-07-08 17:42:44,080 - WARNING - parser - Duplicate event detected: 'Mid Term Test + Honor/Minor test' on 2026-09-08. Skipping.
+2026-07-08 17:42:44,080 - WARNING - parser - Duplicate event detected: 'Second defaulter’s List' on 2025-09-22. Skipping.
+2026-07-08 17:42:44,080 - WARNING - parser - Duplicate event detected: 'Open Day for Mid Term' on 2025-09-24. Skipping.
+2026-07-08 17:42:44,080 - WARNING - parser - Duplicate event detected: 'Indoor Sphurti' on 2026-09-25. Skipping.
+2026-07-08 17:42:44,080 - ERROR - parser - Date conversion error: Could not parse date: '*TBA'. Skipping event: 'SORT Event'
+2026-07-08 17:42:44,081 - WARNING - parser - Duplicate event detected: 'Subject Group Advisors Meetings' on 2026-09-29. Skipping.
+2026-07-08 17:42:44,081 - WARNING - parser - Duplicate event detected: 'World Students Day' on 2025-10-15. Skipping.
+2026-07-08 17:42:44,082 - WARNING - parser - Duplicate event detected: 'Critical defaulter’s List' on 2025-10-17. Skipping.
+2026-07-08 17:42:44,082 - WARNING - parser - Duplicate event detected: 'Diwali break' on 2026-10-20. Skipping.
+2026-07-08 17:42:44,082 - WARNING - parser - Duplicate event detected: 'Re-mid Term (Medical, etc)' on 2026-10-27. Skipping.
+2026-07-08 17:42:44,082 - WARNING - parser - Duplicate event detected: 'Term End & Last instruction day' on 2025-10-31. Skipping.
+2026-07-08 17:42:44,082 - ERROR - parser - Date conversion error: Could not parse date: 'Oral/Practical Exam'. Skipping event: '1st Nov to 7th Nov 25, Sat - Friday'
+2026-07-08 17:42:44,082 - ERROR - parser - Date conversion error: Could not parse date: 'SE, TE, BE (SEM III, V and VII)'. Skipping event: '13th Nov to 29th Nov 25 , Thurs - Sat'
+2026-07-08 17:42:44,082 - WARNING - parser - Duplicate event detected: 'Last Date of CAP checking' on 2025-12-04. Skipping.
+2026-07-08 17:42:44,082 - WARNING - parser - Duplicate event detected: 'Provisional Result' on 2025-12-16. Skipping.
+2026-07-08 17:42:44,083 - WARNING - parser - Duplicate event detected: 'Open Day' on 2025-12-17. Skipping.
+2026-07-08 17:42:44,083 - WARNING - parser - Duplicate event detected: 'Final Result' on 2025-12-20. Skipping.
+2026-07-08 17:42:44,083 - WARNING - parser - Duplicate event detected: 'Re-exam for End Semester Examination' on 2026-01-12. Skipping.
+2026-07-08 17:42:44,083 - WARNING - parser - Duplicate event detected: 'Commencement of New Term' on 2026-01-19. Skipping.
+2026-07-08 17:42:44,083 - WARNING - parser - Duplicate event detected: 'Result of Re-exam' on 2026-02-09. Skipping.
+2026-07-08 17:42:44,083 - INFO - __main__ - Events extracted: Found 34 potential raw events.
+2026-07-08 17:42:44,084 - INFO - __main__ - Validation completed.
+2026-07-08 17:43:06,259 - INFO - __main__ - PDF loaded: academic_calendar.pdf
+2026-07-08 17:43:06,396 - INFO - utils - Page 1 read successfully.
+2026-07-08 17:43:06,526 - INFO - utils - Page 2 read successfully.
+2026-07-08 17:43:06,528 - WARNING - parser - Duplicate event detected: 'Beginning of the Term : UG program' on 2025-07-21. Skipping.
+2026-07-08 17:43:06,529 - WARNING - parser - Duplicate event detected: 'Class Council Election' on 2025-07-31. Skipping.
+2026-07-08 17:43:06,529 - WARNING - parser - Duplicate event detected: 'College Council Election' on 2025-08-04. Skipping.
+2026-07-08 17:43:06,529 - WARNING - parser - Duplicate event detected: 'Society Council Interview' on 2025-08-08. Skipping.
+2026-07-08 17:43:06,529 - WARNING - parser - Duplicate event detected: 'Meeting of student’s Council' on 2025-08-18. Skipping.
+2026-07-08 17:43:06,529 - WARNING - parser - Duplicate event detected: 'Anti Ragging week' on 2026-08-18. Skipping.
+2026-07-08 17:43:06,529 - WARNING - parser - Duplicate event detected: 'University IAT KT' on 2026-08-18. Skipping.
+2026-07-08 17:43:06,529 - WARNING - parser - Duplicate event detected: 'First defaulter’s List' on 2025-08-22. Skipping.
+2026-07-08 17:43:06,529 - WARNING - parser - Duplicate event detected: 'Subject Group Advisors Meetings' on 2026-08-18. Skipping.
+2026-07-08 17:43:06,530 - WARNING - parser - Duplicate event detected: 'Ganpati Chaturthi (Mid Sem Break)' on 2026-08-27. Skipping.
+2026-07-08 17:43:06,530 - WARNING - parser - Duplicate event detected: 'Teachers Day Celebrations' on 2025-09-05. Skipping.
+2026-07-08 17:43:06,530 - WARNING - parser - Duplicate event detected: 'Mid Term Test + Honor/Minor test' on 2026-09-08. Skipping.
+2026-07-08 17:43:06,530 - WARNING - parser - Duplicate event detected: 'Second defaulter’s List' on 2025-09-22. Skipping.
+2026-07-08 17:43:06,530 - WARNING - parser - Duplicate event detected: 'Open Day for Mid Term' on 2025-09-24. Skipping.
+2026-07-08 17:43:06,530 - WARNING - parser - Duplicate event detected: 'Indoor Sphurti' on 2026-09-25. Skipping.
+2026-07-08 17:43:06,530 - ERROR - parser - Date conversion error: Could not parse date: '*TBA'. Skipping event: 'SORT Event'
+2026-07-08 17:43:06,532 - WARNING - parser - Duplicate event detected: 'Subject Group Advisors Meetings' on 2026-09-29. Skipping.
+2026-07-08 17:43:06,532 - WARNING - parser - Duplicate event detected: 'World Students Day' on 2025-10-15. Skipping.
+2026-07-08 17:43:06,532 - WARNING - parser - Duplicate event detected: 'Critical defaulter’s List' on 2025-10-17. Skipping.
+2026-07-08 17:43:06,532 - WARNING - parser - Duplicate event detected: 'Diwali break' on 2026-10-20. Skipping.
+2026-07-08 17:43:06,533 - WARNING - parser - Duplicate event detected: 'Re-mid Term (Medical, etc)' on 2026-10-27. Skipping.
+2026-07-08 17:43:06,533 - WARNING - parser - Duplicate event detected: 'Term End & Last instruction day' on 2025-10-31. Skipping.
+2026-07-08 17:43:06,533 - ERROR - parser - Date conversion error: Could not parse date: 'Oral/Practical Exam'. Skipping event: '1st Nov to 7th Nov 25, Sat - Friday'
+2026-07-08 17:43:06,533 - ERROR - parser - Date conversion error: Could not parse date: 'SE, TE, BE (SEM III, V and VII)'. Skipping event: '13th Nov to 29th Nov 25 , Thurs - Sat'
+2026-07-08 17:43:06,533 - WARNING - parser - Duplicate event detected: 'Last Date of CAP checking' on 2025-12-04. Skipping.
+2026-07-08 17:43:06,533 - WARNING - parser - Duplicate event detected: 'Provisional Result' on 2025-12-16. Skipping.
+2026-07-08 17:43:06,533 - WARNING - parser - Duplicate event detected: 'Open Day' on 2025-12-17. Skipping.
+2026-07-08 17:43:06,534 - WARNING - parser - Duplicate event detected: 'Final Result' on 2025-12-20. Skipping.
+2026-07-08 17:43:06,534 - WARNING - parser - Duplicate event detected: 'Re-exam for End Semester Examination' on 2026-01-12. Skipping.
+2026-07-08 17:43:06,534 - WARNING - parser - Duplicate event detected: 'Commencement of New Term' on 2026-01-19. Skipping.
+2026-07-08 17:43:06,534 - WARNING - parser - Duplicate event detected: 'Result of Re-exam' on 2026-02-09. Skipping.
+2026-07-08 17:43:06,534 - INFO - __main__ - Events extracted: Found 34 potential raw events.
+2026-07-08 17:43:06,535 - INFO - __main__ - Validation completed.
+2026-07-08 17:43:06,536 - INFO - __main__ - JSON exported: 34 valid events securely written to events.json
+2026-07-09 14:43:29,629 - INFO - __main__ - PDF loaded: Academiccalendar2.pdf
+2026-07-09 14:43:29,844 - INFO - utils - Page 1 read successfully.
+2026-07-09 14:43:30,045 - INFO - utils - Page 2 read successfully.
+2026-07-09 14:43:30,086 - INFO - utils - Page 3 read successfully.
+2026-07-09 14:43:30,098 - ERROR - parser - Missing title for event at date 'Sr. No'. Skipping.
+2026-07-09 14:43:30,098 - ERROR - parser - Missing title for event at date '11'. Skipping.
+2026-07-09 14:43:30,098 - ERROR - parser - Missing title for event at date '2'. Skipping.
+2026-07-09 14:43:30,098 - ERROR - parser - Missing title for event at date '3'. Skipping.
+2026-07-09 14:43:30,098 - ERROR - parser - Missing title for event at date '4'. Skipping.
+2026-07-09 14:43:30,098 - ERROR - parser - Missing title for event at date '5'. Skipping.
+2026-07-09 14:43:30,098 - ERROR - parser - Missing title for event at date '6'. Skipping.
+2026-07-09 14:43:30,098 - ERROR - parser - Missing title for event at date '7'. Skipping.
+2026-07-09 14:43:30,098 - ERROR - parser - Missing title for event at date 'SatyaNarayan Pooja'. Skipping.
+2026-07-09 14:43:30,098 - ERROR - parser - Missing title for event at date '9'. Skipping.
+2026-07-09 14:43:30,098 - ERROR - parser - Missing title for event at date '10'. Skipping.
+2026-07-09 14:43:30,099 - ERROR - parser - Missing title for event at date '11'. Skipping.
+2026-07-09 14:43:30,099 - ERROR - parser - Missing title for event at date '12'. Skipping.
+2026-07-09 14:43:30,099 - ERROR - parser - Missing title for event at date '13'. Skipping.
+2026-07-09 14:43:30,099 - ERROR - parser - Missing title for event at date '14'. Skipping.
+2026-07-09 14:43:30,099 - ERROR - parser - Date conversion error: Could not parse date: 'Midterm'. Skipping event: 'Test + Honor/Minor course Test'
+2026-07-09 14:43:30,101 - ERROR - parser - Missing title for event at date '17'. Skipping.
+2026-07-09 14:43:30,101 - ERROR - parser - Missing title for event at date '18'. Skipping.
+2026-07-09 14:43:30,101 - ERROR - parser - Missing title for event at date '19'. Skipping.
+2026-07-09 14:43:30,101 - ERROR - parser - Missing title for event at date '21'. Skipping.
+2026-07-09 14:43:30,101 - ERROR - parser - Missing title for event at date '22'. Skipping.
+2026-07-09 14:43:30,101 - ERROR - parser - Missing title for event at date '23'. Skipping.
+2026-07-09 14:43:30,101 - ERROR - parser - Missing title for event at date '24'. Skipping.
+2026-07-09 14:43:30,101 - ERROR - parser - Missing title for event at date '25'. Skipping.
+2026-07-09 14:43:30,101 - ERROR - parser - Missing title for event at date '26'. Skipping.
+2026-07-09 14:43:30,101 - ERROR - parser - Missing title for event at date '27'. Skipping.
+2026-07-09 14:43:30,101 - ERROR - parser - Missing title for event at date 'BE :-Sem II,IV,VI, VIII, ME and MCA :- Sem II'. Skipping.
+2026-07-09 14:43:30,101 - ERROR - parser - Missing title for event at date '28'. Skipping.
+2026-07-09 14:43:30,101 - ERROR - parser - Missing title for event at date '29'. Skipping.
+2026-07-09 14:43:30,101 - ERROR - parser - Missing title for event at date '30'. Skipping.
+2026-07-09 14:43:30,101 - ERROR - parser - Missing title for event at date '31'. Skipping.
+2026-07-09 14:43:30,102 - ERROR - parser - Missing title for event at date '32'. Skipping.
+2026-07-09 14:43:30,102 - ERROR - parser - Missing title for event at date '33'. Skipping.
+2026-07-09 14:43:30,102 - ERROR - parser - Missing title for event at date '34'. Skipping.
+2026-07-09 14:43:30,102 - ERROR - parser - Missing title for event at date '35'. Skipping.
+2026-07-09 14:43:30,102 - ERROR - parser - Missing title for event at date '36'. Skipping.
+2026-07-09 14:43:30,103 - ERROR - parser - Missing title for event at date '38'. Skipping.
+2026-07-09 14:43:30,103 - ERROR - parser - Missing title for event at date '39'. Skipping.
+2026-07-09 14:43:30,103 - ERROR - parser - Missing title for event at date '40'. Skipping.
+2026-07-09 14:43:30,103 - ERROR - parser - Missing title for event at date '41'. Skipping.
+2026-07-09 14:43:30,103 - INFO - __main__ - Events extracted: Found 36 potential raw events.
+2026-07-09 14:43:30,105 - INFO - __main__ - Validation completed.
+2026-07-09 14:43:30,109 - INFO - __main__ - JSON exported: 36 valid events securely written to events2.json

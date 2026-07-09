@@ -1,0 +1,292 @@
+{
+    "events": [
+        {
+            "event_id": "ccd4f046-f160-46cf-9fa9-006e0daedaa9",
+            "title": "Alumni Day",
+            "description": "Not specified",
+            "date": "2025-12-20",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "74efeee2-419f-480a-bb81-7bf863b45de2",
+            "title": "Swami Vivekanand Jayanti",
+            "description": "Not specified",
+            "date": "2026-01-12",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "b7a284df-ee0f-4c9c-8ba6-99fd0c460763",
+            "title": "Re exams",
+            "description": "Not specified",
+            "date": "2026-01-12",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "a34f963a-151b-4c16-9f0e-10827ad1a4e8",
+            "title": "Illusions - Pre events 13th -",
+            "description": "Not specified",
+            "date": "2026-01-17",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "daebead9-61b6-4d9f-98c2-dc14c3e3d255",
+            "title": "Beginning of the Term",
+            "description": "Not specified",
+            "date": "2026-01-19",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "63ff70d7-e88b-40f7-80bb-cbe2785b41d8",
+            "title": "Window period : Spurthi & Society activities",
+            "description": "Not specified",
+            "date": "2026-01-20",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "cd4e7840-821f-4a4e-9f27-c9495ea4f136",
+            "title": "Illusion",
+            "description": "Not specified",
+            "date": "2026-01-23",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "6170c9c2-33df-411c-b347-0af3ebfc0ff1",
+            "title": "SatyaNarayan Pooja",
+            "description": "Not specified",
+            "date": "2026-02-07",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "52f1a562-4544-4710-ab81-8cc9c6fd0f80",
+            "title": "Sort activity : Marrow donor registry 10th -",
+            "description": "Not specified",
+            "date": "2026-02-11",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "8ef1f7b0-3014-42a6-9ebd-aa74fd933436",
+            "title": "First defaulter’s List",
+            "description": "Not specified",
+            "date": "2026-02-20",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "a8c3b89c-adec-4f02-9fdf-fcccf0fbbd09",
+            "title": "Blood Donation Drive",
+            "description": "Not specified",
+            "date": "2026-02-23",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "b5a2d5ff-bd44-454f-962d-e90d59cd1d65",
+            "title": "University IAT KT",
+            "description": "Not specified",
+            "date": "2026-03-02",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "aa6cc68d-4dbe-4356-90b2-ded189f5835f",
+            "title": "Midterm Test + Honor/Minor course Test 9th-",
+            "description": "Not specified",
+            "date": "2026-03-12",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "fe879ef4-e107-4ed7-85c4-9f07fe95a941",
+            "title": "Photo Session",
+            "description": "Not specified",
+            "date": "2026-03-13",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "71ca88ed-31e9-4131-8da7-1ac02d769e38",
+            "title": "Umeed 23rd -",
+            "description": "Not specified",
+            "date": "2026-03-27",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "a0d4db05-5e6d-495a-8ab5-01a2cc36d7ca",
+            "title": "Second defaulter’s List",
+            "description": "Not specified",
+            "date": "2026-03-30",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "9cc8925f-dd03-4775-a0d0-c83d0b9f9ddc",
+            "title": "Utsav and Annual day 1st -",
+            "description": "Not specified",
+            "date": "2026-04-02",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "3fde129f-cba4-4c91-a8af-0d011b9be732",
+            "title": "Re-mid Term (Medical, etc)",
+            "description": "Not specified",
+            "date": "2026-04-13",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "7a6ef837-8b30-4430-9ec0-aaa60aa626dc",
+            "title": "Professional Society Symposium 13th-",
+            "description": "Not specified",
+            "date": "2026-04-16",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "01712db4-bdd1-4cc7-b903-7b3d40f9e2c1",
+            "title": "Critical Defaulters List",
+            "description": "Not specified",
+            "date": "2026-04-15",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "d77f9061-3f1d-47e5-bcf8-401cac939a77",
+            "title": "BE and MCA Farewell",
+            "description": "Not specified",
+            "date": "2026-04-17",
+            "department": "MCA",
+            "audience": "dept_only"
+        },
+        {
+            "event_id": "3a6ea8f8-b984-4f1f-afc3-8397f22c42ef",
+            "title": "Term End and Term grant day",
+            "description": "Not specified",
+            "date": "2026-04-22",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "51a2a847-06dc-4093-8fbd-57c508b23068",
+            "title": "Conduction of Oral/Practical Examination 23rd-",
+            "description": "Not specified",
+            "date": "2026-04-29",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "514b2917-0ca5-4b96-bb5f-852c7074bb79",
+            "title": "Provisional results",
+            "description": "Not specified",
+            "date": "2026-06-06",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "9bcdc738-2239-438e-ae29-c609f646f77d",
+            "title": "Open Day for ESE",
+            "description": "Not specified",
+            "date": "2026-06-08",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "625d4447-ecd6-4673-9d88-3188d4bf97e8",
+            "title": "Grievances of Open Day",
+            "description": "Not specified",
+            "date": "2026-06-09",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "2bc6ac30-54a0-4d17-abe7-0a417c697508",
+            "title": "Revaluation",
+            "description": "Not specified",
+            "date": "2026-06-12",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "836cd896-20db-43ac-89ac-66d7f88fd9d3",
+            "title": "Final result",
+            "description": "Not specified",
+            "date": "2026-06-20",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "b8934a3a-0009-4215-885f-34756e026368",
+            "title": "Reval result",
+            "description": "Not specified",
+            "date": "2026-06-23",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "0e527552-995e-433a-8ea9-1fb4af566630",
+            "title": "Re-exam - End semester examination",
+            "description": "Not specified",
+            "date": "2026-07-01",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "421f00d4-fda4-463d-a01d-ed40c1450f63",
+            "title": "Result of re-exam",
+            "description": "Not specified",
+            "date": "2026-07-17",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "5c1e9c49-1b9a-4fd4-baf5-9f59e5986534",
+            "title": "Special exam",
+            "description": "Not specified",
+            "date": "2026-07-27",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "e855d08c-2cb0-4d50-bd69-9144d2d7aded",
+            "title": "Re-exam end semester exam - FE and MCA sem 1",
+            "description": "Not specified",
+            "date": "2026-06-09",
+            "department": "MCA",
+            "audience": "dept_only"
+        },
+        {
+            "event_id": "e40139b6-be94-4e1b-adba-49624667c4d8",
+            "title": "Result of re-exam",
+            "description": "Not specified",
+            "date": "2026-06-22",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "ed6d218b-eee5-4a42-b9cb-b9e26669c4a3",
+            "title": "Reval",
+            "description": "Not specified",
+            "date": "2026-07-01",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "9084e16c-b44a-4536-ae89-2b1eab0ddbcf",
+            "title": "Reval result",
+            "description": "Not specified",
+            "date": "2026-07-08",
+            "department": "ALL",
+            "audience": "all_students"
+        }
+    ]
+}

@@ -1,0 +1,276 @@
+{
+    "events": [
+        {
+            "event_id": "230c4d12-c68f-4144-9c10-b8be907b8afb",
+            "title": "Beginning of the Term : UG program",
+            "description": "Not specified",
+            "date": "2025-07-21",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "fed495c2-3272-468d-8b2d-3247c4448dd8",
+            "title": "Class Council Election",
+            "description": "Not specified",
+            "date": "2025-07-31",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "4a47feed-aad7-4a2d-89e0-3e685841569a",
+            "title": "College Council Election",
+            "description": "Not specified",
+            "date": "2025-08-04",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "d6d2c6a4-1da6-4103-82fd-4e7d13eb8f9b",
+            "title": "Society Council Interview",
+            "description": "Not specified",
+            "date": "2025-08-08",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "b8b24103-b8d2-407e-b473-f5b700a21cc7",
+            "title": "Meeting of student’s Council",
+            "description": "Not specified",
+            "date": "2025-08-18",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "7b94a79e-bbe1-485d-939c-bebf4a3a3262",
+            "title": "Anti Ragging week",
+            "description": "Not specified",
+            "date": "2026-08-18",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "7cecd724-897c-45f8-b185-61f1c40158f5",
+            "title": "University IAT KT",
+            "description": "Not specified",
+            "date": "2026-08-18",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "2acdc648-72dc-4817-ac65-f3df7c7b6a0a",
+            "title": "First defaulter’s List",
+            "description": "Not specified",
+            "date": "2025-08-22",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "577cdf9a-fd91-40c1-b4b1-f9c58e761021",
+            "title": "Subject Group Advisors Meetings",
+            "description": "Not specified",
+            "date": "2026-08-18",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "aa78470e-996a-4c35-8092-b2d67872f61b",
+            "title": "Ganpati Chaturthi (Mid Sem Break)",
+            "description": "Not specified",
+            "date": "2026-08-27",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "b8d2caa4-6f38-481c-9d67-172ea0730662",
+            "title": "Teachers Day Celebrations",
+            "description": "Not specified",
+            "date": "2025-09-05",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "8ed7187a-0aaa-4628-b8c6-78b6a87bd99a",
+            "title": "Mid Term Test + Honor/Minor test",
+            "description": "Not specified",
+            "date": "2026-09-08",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "4af886eb-21a1-4284-8467-e77e43aef1bb",
+            "title": "Second defaulter’s List",
+            "description": "Not specified",
+            "date": "2025-09-22",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "bbcfcef3-3c4b-4a41-a249-77f4bfe205d0",
+            "title": "Open Day for Mid Term",
+            "description": "Not specified",
+            "date": "2025-09-24",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "581441aa-6fb9-47b5-84e8-661fef4c2ec7",
+            "title": "Indoor Sphurti",
+            "description": "Not specified",
+            "date": "2026-09-25",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "fcd896a9-13bb-4379-83c0-9c5c9b65b111",
+            "title": "Subject Group Advisors Meetings",
+            "description": "Not specified",
+            "date": "2026-09-29",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "cabd6533-b0a7-44c3-9330-9a674cddd8c7",
+            "title": "World Students Day",
+            "description": "Not specified",
+            "date": "2025-10-15",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "d849efa9-052a-4129-8df8-517f22cb75ab",
+            "title": "Critical defaulter’s List",
+            "description": "Not specified",
+            "date": "2025-10-17",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "984c58ef-608a-47e6-a20a-040084d89d19",
+            "title": "Diwali break",
+            "description": "Not specified",
+            "date": "2026-10-20",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "2268c7f4-7fd0-4411-934b-a09f3b0eaa5c",
+            "title": "Re-mid Term (Medical, etc)",
+            "description": "Not specified",
+            "date": "2026-10-27",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "98ad2c9e-9c5b-4ca8-8e7d-c45c4fa6bcdb",
+            "title": "Term End & Last instruction day",
+            "description": "Not specified",
+            "date": "2025-10-31",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "10fa0f37-226c-4d62-a1ad-8202d6e00507",
+            "title": "Conduction of Submissions,",
+            "description": "Not specified",
+            "date": "2026-11-01",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "e4443c25-fd27-4d7a-9204-4a654bb31c6d",
+            "title": "End Semester Examination",
+            "description": "Not specified",
+            "date": "2026-11-13",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "c7586543-90f0-4580-9c4a-80c09e126d06",
+            "title": "Last Date of CAP checking",
+            "description": "Not specified",
+            "date": "2025-12-04",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "bb9835af-842d-409d-9b89-355423930c36",
+            "title": "Provisional Result",
+            "description": "Not specified",
+            "date": "2025-12-16",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "e5e877b1-39c2-4571-89c2-d15fb8bad6cf",
+            "title": "Open Day",
+            "description": "Not specified",
+            "date": "2025-12-17",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "12aa36cb-5a93-47a9-96d8-0efbc490b262",
+            "title": "Final Result",
+            "description": "Not specified",
+            "date": "2025-12-20",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "3f0fad2d-bbe2-4ed7-9652-4e189936087a",
+            "title": "Re-exam for End Semester Examination",
+            "description": "Not specified",
+            "date": "2026-01-12",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "74009112-633a-41c9-8208-b16a0fbbeeee",
+            "title": "Commencement of New Term",
+            "description": "Not specified",
+            "date": "2026-01-19",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "5f7e13f1-4af3-45dc-8000-e8ae2b0c1d05",
+            "title": "Result of Re-exam",
+            "description": "Not specified",
+            "date": "2026-02-09",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "7119ab80-69b4-4873-9b5f-5e48deb11543",
+            "title": "SORT Event",
+            "description": "*TBA",
+            "date": "2026-07-17",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "f941d025-a354-499b-aa0e-e228b79c01cb",
+            "title": "Conduction of Submissions,",
+            "description": "Not specified",
+            "date": "2026-07-23",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "80680272-df79-4c47-bd3f-4714473e5d64",
+            "title": "End Semester Examination",
+            "description": "Not specified",
+            "date": "2026-07-24",
+            "department": "ALL",
+            "audience": "all_students"
+        },
+        {
+            "event_id": "6f116ca2-dd41-4dfa-b533-b5b47b04b3de",
+            "title": "Monday",
+            "description": "Not specified",
+            "date": "2026-07-26",
+            "department": "ALL",
+            "audience": "all_students"
+        }
+    ]
+}
