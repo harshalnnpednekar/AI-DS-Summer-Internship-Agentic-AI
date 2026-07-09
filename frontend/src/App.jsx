@@ -16,17 +16,17 @@ function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
         
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="mark-attendance" element={<MarkAttendance />} />
-          <Route path="attendance-data" element={<AttendanceTracking />} />
-          <Route path="calendar" element={<AcademicCalendar />} />
-          <Route path="broadcast-logs" element={<BroadcastLogs />} />
-          <Route path="defaulter-management" element={<DefaulterManagement />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="configuration" element={<Configuration />} />
+        <Route element={<Layout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/mark-attendance" element={<MarkAttendance />} />
+          <Route path="/attendance-data" element={<AttendanceTracking />} />
+          <Route path="/calendar" element={<AcademicCalendar />} />
+          <Route path="/broadcast-logs" element={<BroadcastLogs />} />
+          <Route path="/defaulter-management" element={<DefaulterManagement />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/configuration" element={<Configuration />} />
         </Route>
       </Routes>
     </Router>
