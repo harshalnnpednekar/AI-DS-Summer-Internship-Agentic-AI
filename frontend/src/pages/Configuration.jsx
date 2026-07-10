@@ -7,7 +7,7 @@ const Configuration = () => {
   return (
     <div className="page-container">
       <div className="page-header">
-        <div className="breadcrumb">Dashboard &gt; Configuration</div>
+
         <h1 className="page-title">Agent Configuration</h1>
         <p className="page-subtitle">Configure automated rules, thresholds, and notification settings for the department agent.</p>
       </div>

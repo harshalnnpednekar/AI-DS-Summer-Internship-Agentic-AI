@@ -7,7 +7,7 @@ const AttendanceTracking = () => {
   return (
     <div className="page-container">
       <div className="page-header">
-        <div className="breadcrumb">Dashboard &gt; Attendance Tracking</div>
+
         <h1 className="page-title">My Attendance Data</h1>
         <p className="page-subtitle">Live data updated each time a faculty submits a lecture attendance record.</p>
       </div>

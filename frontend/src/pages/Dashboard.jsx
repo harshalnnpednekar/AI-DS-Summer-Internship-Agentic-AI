@@ -7,7 +7,7 @@ const Dashboard = () => {
   return (
     <div className="page-container">
       <div className="page-header">
-        <div className="breadcrumb">Dashboard &gt; Overview</div>
+
         <h1 className="page-title">Good morning, Dr. Priya 👋</h1>
         <p className="page-subtitle">Academic Year 2024-25 · Faculty — SE-A Data Structures & Algorithms</p>
       </div>

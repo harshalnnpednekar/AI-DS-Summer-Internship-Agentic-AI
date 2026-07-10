@@ -53,7 +53,7 @@ const Layout = () => {
           </div>
           <div className="brand-text">
             <h2>VESIT</h2>
-            <p>AI & Data Science Dept.</p>
+            <p>AI & DS</p>
           </div>
         </div>
 

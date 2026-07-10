@@ -26,7 +26,7 @@ const BroadcastLogs = () => {
   return (
     <div className="page-container">
       <div className="page-header">
-        <div className="breadcrumb">Dashboard &gt; Broadcast Logs</div>
+
         <h1 className="page-title">Broadcast Activity Logs</h1>
         <p className="page-subtitle">Complete audit trail of all automated notifications dispatched by the agent.</p>
       </div>

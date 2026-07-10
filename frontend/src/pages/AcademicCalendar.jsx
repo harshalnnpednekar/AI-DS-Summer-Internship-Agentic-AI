@@ -16,7 +16,7 @@ const AcademicCalendar = () => {
   return (
     <div className="page-container">
       <div className="page-header">
-        <div className="breadcrumb">Dashboard &gt; Academic Calendar</div>
+
         <h1 className="page-title">Academic Calendar & Automated Updates</h1>
         <p className="page-subtitle">Upload the department PDF calendar. The agent parses it and broadcasts deadline alerts automatically.</p>
       </div>

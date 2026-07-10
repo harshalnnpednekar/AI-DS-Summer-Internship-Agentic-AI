@@ -18,7 +18,7 @@ const DefaulterManagement = () => {
   return (
     <div className="page-container">
       <div className="page-header">
-        <div className="breadcrumb">Dashboard &gt; Defaulter Management</div>
+
         <h1 className="page-title">Automated Defaulter Management</h1>
         <p className="page-subtitle">Auto-generated from live attendance data. Awaiting HOD approval before broadcast.</p>
       </div>
