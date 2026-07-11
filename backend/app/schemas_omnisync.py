@@ -114,3 +114,14 @@ class StandardResponse(BaseModel):
     success: bool
     data: Any
     error: Optional[str] = None
+
+# --- Lecture Attendance Schemas ---
+
+class LectureAttendanceSubmit(BaseModel):
+    class_id: UUID
+    subject_id: UUID
+    lecture_date: date
+    topic_covered: str
+    total_students_enrolled: int
+    students_present_count: int
+    absentee_roll_numbers: Optional[List[str]] = []

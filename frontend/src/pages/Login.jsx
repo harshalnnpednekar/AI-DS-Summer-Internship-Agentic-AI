@@ -13,6 +13,8 @@ const Login = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [role, setRole] = useState('STUDENT');
+  const [rollNumber, setRollNumber] = useState('');
+  const [division, setDivision] = useState('SE-A');
   
   // UI State
   const [showPassword, setShowPassword] = useState(false);
@@ -43,8 +45,9 @@ const Login = () => {
           last_name: lastName,
           role,
           department: "AI & DS",
-          division: "SE-A",
-          current_semester: "4"
+          division: role === 'STUDENT' ? division : "SE-A",
+          current_semester: "4",
+          roll_number: role === 'STUDENT' ? rollNumber : undefined
         });
         headers['Content-Type'] = 'application/json';
       }
@@ -202,6 +205,23 @@ const Login = () => {
                     <option value="FACULTY">Faculty</option>
                     <option value="HOD">HOD</option>
                   </select>
+                </div>
+              )}
+
+              {!isLoginMode && role === 'STUDENT' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                  <div className="form-group">
+                    <label>Roll Number</label>
+                    <input type="text" placeholder="e.g. 2021001" value={rollNumber} onChange={(e) => setRollNumber(e.target.value)} required />
+                  </div>
+                  <div className="form-group">
+                    <label>Class</label>
+                    <select value={division} onChange={(e) => setDivision(e.target.value)} required style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none' }}>
+                      <option value="SE-A">SE-A</option>
+                      <option value="TE-A">TE-A</option>
+                      <option value="BE-A">BE-A</option>
+                    </select>
+                  </div>
                 </div>
               )}
 

@@ -4,8 +4,8 @@ A unified platform for automated attendance tracking, academic calendar manageme
 
 ## Project Structure
 
-- `frontend/` - React-based user interface for the OmniSync Portal, featuring Role-Based Access Control (HOD, Faculty, Student).
-- `backend/` - FastAPI backend application handling authentication, data storage, and business logic.
+- `frontend/` - React-based user interface for the OmniSync Portal, featuring Role-Based Access Control (HOD, Faculty, Student), and a comprehensive Attendance Tracking Dashboard.
+- `backend/` - FastAPI backend application handling authentication, data storage, robust attendance stats aggregation, and business logic.
 - `AcademicCalendarExtractor/` - Automated parsing and extraction tool for Academic Calendars.
 
 ## Setup Instructions

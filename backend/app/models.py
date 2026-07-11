@@ -92,3 +92,43 @@ class DefaulterList(Base):
     generated_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     student_ids = Column(JSONB, nullable=False) # Array of student IDs
     broadcast_status = Column(String(20), nullable=False, default="PENDING")
+
+from sqlalchemy import Integer
+
+class Class(Base):
+    __tablename__ = "classes"
+
+    id = Column(Uuid, primary_key=True, default=uuid.uuid4)
+    name = Column(String(50), nullable=False)
+    department_id = Column(String(100), nullable=False)
+    total_students = Column(Integer, nullable=False, default=0)
+
+class Subject(Base):
+    __tablename__ = "subjects"
+
+    id = Column(Uuid, primary_key=True, default=uuid.uuid4)
+    code = Column(String(50), nullable=False)
+    name = Column(String(100), nullable=False)
+    department_id = Column(String(100), nullable=False)
+
+class FacultySubjectMapping(Base):
+    __tablename__ = "faculty_subject_mappings"
+
+    id = Column(Uuid, primary_key=True, default=uuid.uuid4)
+    faculty_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    class_id = Column(Uuid, ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
+    subject_id = Column(Uuid, ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
+
+class LectureAttendance(Base):
+    __tablename__ = "lecture_attendances"
+
+    id = Column(Uuid, primary_key=True, default=uuid.uuid4)
+    faculty_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    class_id = Column(Uuid, ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
+    subject_id = Column(Uuid, ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
+    lecture_date = Column(Date, nullable=False)
+    topic_covered = Column(String(200), nullable=False)
+    total_students_enrolled = Column(Integer, nullable=False)
+    students_present_count = Column(Integer, nullable=False)
+    absentee_roll_numbers = Column(JSONB, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

@@ -1,9 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { TrendingUp, BookOpen, AlertTriangle, Search } from 'lucide-react';
 import './Pages.css';
 import './AttendanceTracking.css';
 
 const AttendanceTracking = () => {
+  const [stats, setStats] = useState({ 
+    total_lectures: 0, 
+    avg_attendance: 0, 
+    under_75_count: 0,
+    class_wise_stats: [] 
+  });
+  const [filter, setFilter] = useState('All');
+  const [search, setSearch] = useState('');
+  
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        const response = await fetch('/api/attendance/stats', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          setStats(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch tracking stats", err);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const filteredStats = (stats.class_wise_stats || []).filter(stat => {
+    const matchesFilter = filter === 'All' || stat.class.startsWith(filter);
+    const matchesSearch = stat.class.toLowerCase().includes(search.toLowerCase()) || 
+                          stat.subject.toLowerCase().includes(search.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
   return (
     <div className="page-container">
       <div className="page-header">
@@ -20,7 +53,7 @@ const AttendanceTracking = () => {
               <TrendingUp size={18} />
             </div>
           </div>
-          <div className="stat-value">88%</div>
+          <div className="stat-value">{stats.avg_attendance}%</div>
           <div className="stat-context">Across tracked lectures</div>
         </div>
 
@@ -31,7 +64,7 @@ const AttendanceTracking = () => {
               <BookOpen size={18} />
             </div>
           </div>
-          <div className="stat-value">42</div>
+          <div className="stat-value">{stats.total_lectures}</div>
           <div className="stat-context">Current academic semester</div>
         </div>
         
@@ -42,7 +75,7 @@ const AttendanceTracking = () => {
               <AlertTriangle size={18} />
             </div>
           </div>
-          <div className="stat-value">0</div>
+          <div className="stat-value">{stats.under_75_count}</div>
           <div className="stat-context">Class-subject pairs at risk</div>
         </div>
       </div>
@@ -56,12 +89,14 @@ const AttendanceTracking = () => {
           <div className="toolbar-actions">
             <div className="search-box">
               <Search size={16} className="text-secondary" />
-              <input type="text" placeholder="Search..." className="search-input" />
+              <input type="text" placeholder="Search..." className="search-input" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
-            <select className="filter-select">
+            <select className="filter-select" value={filter} onChange={(e) => setFilter(e.target.value)}>
               <option value="All">All</option>
+              <option value="FE">FE</option>
               <option value="SE">SE</option>
               <option value="TE">TE</option>
+              <option value="BE">BE</option>
             </select>
           </div>
         </div>
@@ -78,26 +113,33 @@ const AttendanceTracking = () => {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td><span className="class-badge">SE-A</span></td>
-                <td className="font-medium">Data Structures & Algorithms</td>
-                <td>Dr. Priya Mehta</td>
-                <td>42</td>
-                <td>
-                  <div className="attendance-progress-cell">
-                    <div className="attendance-progress-bg">
-                      <div className="attendance-progress-fill" style={{ width: '88%', backgroundColor: 'var(--color-success)' }}></div>
+              {filteredStats.map((stat, idx) => (
+                <tr key={idx}>
+                  <td><span className="class-badge">{stat.class}</span></td>
+                  <td className="font-medium">{stat.subject}</td>
+                  <td>{stat.professor}</td>
+                  <td>{stat.lectures}</td>
+                  <td>
+                    <div className="attendance-progress-cell">
+                      <div className="attendance-progress-bg">
+                        <div className="attendance-progress-fill" style={{ width: stat.attendance, backgroundColor: stat.attendance_num >= 75 ? 'var(--color-success)' : stat.attendance_num >= 60 ? 'var(--color-warning)' : 'var(--color-danger)' }}></div>
+                      </div>
+                      <span className={`font-semibold ${stat.attendance_num >= 75 ? 'text-success' : stat.attendance_num >= 60 ? 'text-warning' : 'text-danger'}`}>{stat.attendance}</span>
                     </div>
-                    <span className="font-semibold text-success">88%</span>
-                  </div>
-                </td>
-              </tr>
+                  </td>
+                </tr>
+              ))}
+              {filteredStats.length === 0 && (
+                <tr>
+                  <td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: '#64748B' }}>No attendance data found.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
         
         <div className="table-footer flex-between">
-          <span>Showing 1 of 1 records</span>
+          <span>Showing {filteredStats.length} of {stats.class_wise_stats.length} records</span>
           <div className="legend-container">
             <div className="legend-item"><span className="legend-dot bg-success"></span> &gt;75% Compliant</div>
             <div className="legend-item"><span className="legend-dot bg-warning"></span> 60-75% At Risk</div>

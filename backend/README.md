@@ -27,13 +27,15 @@
 
 ## Project Overview
 
-The **EduAgent Backend** is the data and API layer for a college event notification system. It exposes REST endpoints to:
+The **EduAgent Backend** is the data and API layer for a college event notification system, now heavily expanded with the **OmniSync Attendance Tracking System**. It exposes REST endpoints to:
 
 - Manage upcoming college events (exams, deadlines, guest lectures, etc.)
 - Store student records by department
 - Log the status of email notifications sent to students
+- **OmniSync:** Full auth system (HOD, Faculty, Student roles)
+- **OmniSync:** Submit and track daily lecture attendance, with class-wise tracking and aggregation
 
-This backend is designed to be consumed by an **AI scheduling agent** (EduAgent) that automatically queries upcoming events and dispatches email notifications to the relevant students.
+This backend is designed to be consumed by an **AI scheduling agent** (EduAgent) as well as the **OmniSync React Frontend**.
 
 ---
 

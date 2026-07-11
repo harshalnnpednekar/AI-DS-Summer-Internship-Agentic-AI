@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { TrendingUp, BookOpen, Edit, Users, Calendar, CheckCircle2 } from 'lucide-react';
 import './Pages.css';
 import './Dashboard.css';
@@ -16,6 +17,30 @@ const getAcademicYear = () => {
 };
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const [stats, setStats] = useState({ total_lectures: 0, avg_attendance: 0, recent_lectures: [] });
+  const [selectedLecture, setSelectedLecture] = useState(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        const response = await fetch('/api/attendance/stats', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        if (data.success) {
+          setStats(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch stats", err);
+      }
+    };
+    fetchStats();
+  }, []);
+
   return (
     <div className="page-container">
       <div className="page-header">
@@ -31,8 +56,8 @@ const Dashboard = () => {
               <TrendingUp size={18} />
             </div>
           </div>
-          <div className="stat-value">88%</div>
-          <div className="stat-context">SE-A — Data Structures & Algorithms</div>
+          <div className="stat-value">{stats.avg_attendance}%</div>
+          <div className="stat-context">Current Semester</div>
         </div>
 
         <div className="card stat-card">
@@ -42,8 +67,8 @@ const Dashboard = () => {
               <BookOpen size={18} />
             </div>
           </div>
-          <div className="stat-value">42</div>
-          <div className="stat-context">Current semester</div>
+          <div className="stat-value">{stats.total_lectures}</div>
+          <div className="stat-context">Current Semester</div>
         </div>
       </div>
 
@@ -54,7 +79,7 @@ const Dashboard = () => {
           </div>
           <h3>Mark Attendance</h3>
           <p>Submit today's lecture attendance record</p>
-          <button className="btn-text action-link">Open &gt;</button>
+          <button className="btn-text action-link" onClick={() => navigate('/mark-attendance')}>Open &gt;</button>
         </div>
 
         <div className="card action-card">
@@ -63,7 +88,7 @@ const Dashboard = () => {
           </div>
           <h3>My Attendance Data</h3>
           <p>View attendance stats for your classes</p>
-          <button className="btn-text action-link">Open &gt;</button>
+          <button className="btn-text action-link" onClick={() => navigate('/attendance-data')}>Open &gt;</button>
         </div>
 
         <div className="card action-card">
@@ -72,34 +97,64 @@ const Dashboard = () => {
           </div>
           <h3>Academic Calendar</h3>
           <p>View upcoming deadlines and events</p>
-          <button className="btn-text action-link">Open &gt;</button>
+          <button className="btn-text action-link" onClick={() => navigate('/calendar')}>Open &gt;</button>
         </div>
       </div>
 
       <div className="card activity-card">
         <div className="activity-header">
-          <TrendingUp size={18} className="text-secondary" />
-          <h2>Recent Agent Activity</h2>
+          <BookOpen size={18} className="text-secondary" />
+          <h2>Recent Attendance Submissions</h2>
         </div>
         
         <div className="activity-list">
-          <div className="activity-item">
-            <div className="activity-indicator"></div>
-            <div className="activity-content">
-              <h4>Insem Exam reminder sent to all SE & TE students</h4>
-              <p>Jul 9, 2025 · 09:00 AM · via Email</p>
+          {stats.recent_lectures && stats.recent_lectures.length > 0 ? (
+            stats.recent_lectures.map(lecture => (
+              <div className="activity-item" key={lecture.id} style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+                <div style={{ display: 'flex', width: '100%', gap: '1rem', alignItems: 'flex-start' }}>
+                  <div className="activity-indicator" style={{ backgroundColor: '#10B981' }}></div>
+                <div className="activity-content" style={{ flex: 1 }}>
+                  <h4>{lecture.class_name} • {lecture.subject_name}</h4>
+                  <p>{lecture.date} · Topic: {lecture.topic} · Attendance: {lecture.present}/{lecture.total}</p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <button 
+                    style={{ background: 'white', border: '1px solid var(--color-border)', borderRadius: '4px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer', fontWeight: 500 }}
+                    onClick={() => setSelectedLecture(selectedLecture?.id === lecture.id ? null : lecture)}
+                  >
+                    {selectedLecture?.id === lecture.id ? 'Hide Roll List' : 'View Roll List'}
+                  </button>
+                  <div className="status-badge delivered">Submitted</div>
+                </div>
+                </div>
+
+                {selectedLecture?.id === lecture.id && (
+                  <div style={{ marginTop: '1rem', padding: '1.5rem', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--color-border)', marginLeft: '1.5rem' }}>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                      <h3 style={{ fontSize: '0.875rem', color: '#10B981', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Present ({lecture.present})</h3>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        {Array.from({length: lecture.total}, (_, i) => String(i + 1))
+                          .filter(r => !(lecture.absentees || []).includes(r))
+                          .map(r => <span key={r} style={{ background: '#dcfce7', color: '#166534', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.8125rem', fontWeight: 600 }}>{r}</span>)}
+                      </div>
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '0.875rem', color: '#EF4444', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Absent ({lecture.total - lecture.present})</h3>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        {lecture.absentees && lecture.absentees.length > 0 ? lecture.absentees.map(r => (
+                          <span key={r} style={{ background: '#fee2e2', color: '#991b1b', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.8125rem', fontWeight: 600 }}>{r}</span>
+                        )) : <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.8125rem' }}>None</span>}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="activity-item">
+              <p style={{ color: '#64748B', padding: '1rem 0' }}>No attendance records submitted yet.</p>
             </div>
-            <div className="status-badge delivered">Delivered</div>
-          </div>
-          
-          <div className="activity-item">
-            <div className="activity-indicator"></div>
-            <div className="activity-content">
-              <h4>Insem Exam reminder broadcast to department group</h4>
-              <p>Jul 9, 2025 · 09:01 AM · via WhatsApp</p>
-            </div>
-            <div className="status-badge delivered">Delivered</div>
-          </div>
+          )}
         </div>
       </div>
     </div>

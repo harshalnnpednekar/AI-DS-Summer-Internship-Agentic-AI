@@ -1,6 +1,6 @@
-# Department Management Agent — Frontend
+# OmniSync Portal — Frontend
 
-This is the React-based frontend application for the VESIT AI & Data Science Department Management Agent. It provides a unified, premium-grade enterprise interface for faculty members to manage attendance, track academic calendars, and generate defaulter lists automatically.
+This is the React-based frontend application for the VESIT AI & Data Science OmniSync Platform. It provides a unified, premium-grade enterprise interface for faculty members to manage attendance, track academic calendars, and generate defaulter lists automatically.
 
 ## Features
 
