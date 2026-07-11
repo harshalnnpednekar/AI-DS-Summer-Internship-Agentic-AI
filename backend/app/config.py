@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 import os
@@ -9,6 +10,7 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str = "your-secret-key-here-change-in-production"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    JWT_ALGORITHM: str = "HS256"
 
     # Application
     DEBUG: bool = True

@@ -3,18 +3,24 @@ import { TrendingUp, BookOpen, Edit, Users, Calendar, CheckCircle2 } from 'lucid
 import './Pages.css';
 import './Dashboard.css';
 
+const getAcademicYear = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  // Assume academic year starts in June (month 5)
+  if (month >= 5) {
+    return `${year}-${(year + 1).toString().slice(2)}`;
+  } else {
+    return `${year - 1}-${year.toString().slice(2)}`;
+  }
+};
+
 const Dashboard = () => {
   return (
     <div className="page-container">
       <div className="page-header">
-
-        <h1 className="page-title">Good morning, Dr. Priya 👋</h1>
-        <p className="page-subtitle">Academic Year 2024-25 · Faculty — SE-A Data Structures & Algorithms</p>
-      </div>
-
-      <div className="agent-status-banner">
-        <div className="status-indicator online"></div>
-        <span>Agent Running — All systems operational</span>
+        <h1 className="page-title">Good morning, {localStorage.getItem('userName') || 'User'} 👋</h1>
+        <p className="page-subtitle">Academic Year {getAcademicYear()} · {localStorage.getItem('userDesc') || 'Faculty'}</p>
       </div>
 
       <div className="stats-grid">

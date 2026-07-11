@@ -103,7 +103,7 @@ Before you begin, ensure you have the following installed:
 
 ```bash
 git clone <repository-url>
-cd Summer-Internship-College/backend
+cd backend
 ```
 
 ### 2. Create and activate a virtual environment
@@ -122,6 +122,13 @@ source venv/bin/activate
 
 ```bash
 pip install -r requirements.txt
+```
+
+### 4. Setup Database and Migrations
+
+Ensure your PostgreSQL instance is running. Then run:
+```bash
+python -m alembic upgrade head
 ```
 
 ---
@@ -263,10 +270,10 @@ python app/seed.py
 
 ## Running the Server
 
-Start the development server with hot reload:
+Start the development server using the provided run script (handles Windows compatibility automatically):
 
 ```bash
-uvicorn app.main:app --reload
+python run_backend.py
 ```
 
 The server will start at: **http://127.0.0.1:8000**

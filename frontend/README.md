@@ -44,4 +44,4 @@ This is the React-based frontend application for the VESIT AI & Data Science Dep
 4. **Access the application:**
    Open your browser and navigate to `http://localhost:5173`. 
    
-   *Note: The frontend is currently configured with a static layout for demonstration purposes and uses standard routing. No database connection is required to preview the UI design.*
+   *Note: The frontend is now fully connected to the backend API via proxy configured in Vite. You must have the backend server running on `localhost:8000` to handle authentication (Sign Up / Log In) and data loading successfully.*

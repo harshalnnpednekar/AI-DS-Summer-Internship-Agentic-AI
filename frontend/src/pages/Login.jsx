@@ -1,27 +1,93 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Cpu, CheckCircle, Eye, EyeOff, Lock } from 'lucide-react';
+import { CheckCircle, Eye, EyeOff, Lock, UserPlus, AlertCircle } from 'lucide-react';
 import './Login.css';
 
 const Login = () => {
   const navigate = useNavigate();
+  const [isLoginMode, setIsLoginMode] = useState(true);
+  
+  // Auth State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [role, setRole] = useState('STUDENT');
+  
+  // UI State
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleAuth = async (e) => {
     e.preventDefault();
-    navigate('/dashboard');
+    setError('');
+    setLoading(true);
+
+    try {
+      const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/signup';
+      
+      let bodyData;
+      let headers = {};
+      
+      if (isLoginMode) {
+        bodyData = new URLSearchParams();
+        bodyData.append('username', email);
+        bodyData.append('password', password);
+        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+      } else {
+        bodyData = JSON.stringify({
+          email,
+          password,
+          first_name: firstName,
+          last_name: lastName,
+          role,
+          department: "AI & DS",
+          division: "SE-A",
+          current_semester: "4"
+        });
+        headers['Content-Type'] = 'application/json';
+      }
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers,
+        body: bodyData
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        localStorage.setItem('accessToken', data.data.access_token);
+        localStorage.setItem('userRole', data.data.user.role);
+        localStorage.setItem('userName', `${data.data.user.first_name} ${data.data.user.last_name}`);
+        localStorage.setItem('userInitials', (data.data.user.first_name[0] + data.data.user.last_name[0]).toUpperCase());
+        localStorage.setItem('userDesc', data.data.user.role === 'STUDENT' ? 'Student' : (data.data.user.role === 'HOD' ? 'Head of Department' : 'Faculty'));
+        
+        navigate('/dashboard');
+      } else {
+        setError(data.error || 'Authentication failed');
+      }
+    } catch (err) {
+      setError('Network error. Is the backend running on port 8000?');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const setDemoAccount = (role) => {
-    if (role === 'HOD') {
-      setEmail('hod@vesit.edu');
+  const setDemoAccount = (demoRole) => {
+    setIsLoginMode(true);
+    if (demoRole === 'HOD') {
+      setEmail('hod.aids@ves.ac.in');
       setPassword('hod@123');
+    } else if (demoRole === 'STUDENT') {
+      setEmail('student1@ves.ac.in');
+      setPassword('student@123');
     } else {
-      setEmail('faculty@vesit.edu');
+      setEmail('priya.mehta@ves.ac.in');
       setPassword('faculty@123');
     }
+    setError('');
   };
 
   return (
@@ -70,13 +136,33 @@ const Login = () => {
 
         {/* Right Login Panel */}
         <div className="login-form-section">
-          <div className="login-form-inner">
+          <div className="login-form-inner" style={{ maxHeight: '100%', overflowY: 'auto' }}>
             <div className="form-header">
-              <h2>Sign in to your account</h2>
-              <p>Use your institutional email address.</p>
+              <h2>{isLoginMode ? 'Sign in to your account' : 'Create new account'}</h2>
+              <p>{isLoginMode ? 'Use your institutional email address.' : 'Register with your institutional details.'}</p>
             </div>
 
-            <form onSubmit={handleLogin} className="login-form">
+            {error && (
+              <div className="error-banner" style={{ background: '#fef2f2', color: '#b91c1c', padding: '10px', borderRadius: '6px', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
+                <AlertCircle size={16} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleAuth} className="login-form">
+              {!isLoginMode && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                  <div className="form-group">
+                    <label>First Name</label>
+                    <input type="text" placeholder="John" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+                  </div>
+                  <div className="form-group">
+                    <label>Last Name</label>
+                    <input type="text" placeholder="Doe" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+                  </div>
+                </div>
+              )}
+
               <div className="form-group">
                 <label>Email Address</label>
                 <input 
@@ -108,34 +194,70 @@ const Login = () => {
                 </div>
               </div>
 
-              <button type="submit" className="login-btn">
-                <Lock size={16} /> Sign In Securely
+              {!isLoginMode && (
+                <div className="form-group">
+                  <label>Role</label>
+                  <select value={role} onChange={(e) => setRole(e.target.value)} required style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none' }}>
+                    <option value="STUDENT">Student</option>
+                    <option value="FACULTY">Faculty</option>
+                    <option value="HOD">HOD</option>
+                  </select>
+                </div>
+              )}
+
+              <button type="submit" className="login-btn" disabled={loading}>
+                {loading ? 'Processing...' : (
+                  isLoginMode ? <><Lock size={16} /> Sign In Securely</> : <><UserPlus size={16} /> Create Account</>
+                )}
               </button>
             </form>
 
-            <div className="demo-accounts-wrapper">
-              <div className="demo-accounts-divider">
-                <span>DEMO ACCOUNTS</span>
-              </div>
-              
-              <div className="demo-accounts-grid">
-                <button type="button" className="demo-card" onClick={() => setDemoAccount('HOD')}>
-                  <div className="demo-card-header">
-                    <span className="demo-role">HOD <span className="demo-access">(Full Access)</span></span>
-                    <span className="demo-badge badge-hod">HOD</span>
-                  </div>
-                  <div className="demo-card-hint">credential hint: hod@123</div>
-                </button>
-                
-                <button type="button" className="demo-card" onClick={() => setDemoAccount('FACULTY')}>
-                  <div className="demo-card-header">
-                    <span className="demo-role">Dr. Priya Mehta <span className="demo-access">— SE-A</span></span>
-                    <span className="demo-badge badge-faculty">FACULTY</span>
-                  </div>
-                  <div className="demo-card-hint">credential hint: faculty@123</div>
-                </button>
-              </div>
+            <div style={{ textAlign: 'center', marginTop: '15px', fontSize: '13px' }}>
+              <button 
+                type="button" 
+                onClick={() => {
+                  setIsLoginMode(!isLoginMode);
+                  setError('');
+                }}
+                style={{ background: 'none', border: 'none', color: '#4f46e5', fontWeight: '500', cursor: 'pointer' }}
+              >
+                {isLoginMode ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
+              </button>
             </div>
+
+            {isLoginMode && (
+              <div className="demo-accounts-wrapper">
+                <div className="demo-accounts-divider">
+                  <span>DEMO ACCOUNTS</span>
+                </div>
+                
+                <div className="demo-accounts-grid">
+                  <button type="button" className="demo-card" onClick={() => setDemoAccount('HOD')}>
+                    <div className="demo-card-header">
+                      <span className="demo-role">HOD <span className="demo-access">(Full Access)</span></span>
+                      <span className="demo-badge badge-hod">HOD</span>
+                    </div>
+                    <div className="demo-card-hint">hod.aids@ves.ac.in</div>
+                  </button>
+                  
+                  <button type="button" className="demo-card" onClick={() => setDemoAccount('FACULTY')}>
+                    <div className="demo-card-header">
+                      <span className="demo-role">Dr. Priya Mehta <span className="demo-access">— SE-A</span></span>
+                      <span className="demo-badge badge-faculty">FACULTY</span>
+                    </div>
+                    <div className="demo-card-hint">priya.mehta@ves.ac.in</div>
+                  </button>
+
+                  <button type="button" className="demo-card" onClick={() => setDemoAccount('STUDENT')} style={{gridColumn: '1 / -1'}}>
+                    <div className="demo-card-header">
+                      <span className="demo-role">Test Student <span className="demo-access">— SE-A</span></span>
+                      <span className="demo-badge badge-student" style={{backgroundColor: '#e0e7ff', color: '#4338ca'}}>STUDENT</span>
+                    </div>
+                    <div className="demo-card-hint">student1@ves.ac.in</div>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
