@@ -10,6 +10,7 @@ const MarkAttendance = () => {
   const [absentees, setAbsentees] = useState([]);
   const [currentRoll, setCurrentRoll] = useState('');
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [sessionType, setSessionType] = useState('Theory');
   
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
@@ -54,6 +55,14 @@ const MarkAttendance = () => {
     fetchFormMeta();
   }, []);
 
+  useEffect(() => {
+    if (totalStudents) {
+      setStudentsPresent(Math.max(0, parseInt(totalStudents) - absentees.length));
+    } else {
+      setStudentsPresent('');
+    }
+  }, [totalStudents, absentees]);
+
   const handleClassChange = (e) => {
     const val = e.target.value;
     setSelectedClass(val);
@@ -81,7 +90,8 @@ const MarkAttendance = () => {
           topic_covered: topic,
           total_students_enrolled: parseInt(totalStudents),
           students_present_count: parseInt(studentsPresent),
-          absentee_roll_numbers: absentees
+          absentee_roll_numbers: absentees,
+          session_type: sessionType
         })
       });
       const data = await response.json();
@@ -185,10 +195,19 @@ const MarkAttendance = () => {
               </div>
             </div>
 
-            <div className="form-group">
-              <label>Lecture Date <span className="text-danger">*</span></label>
-              <div className="input-with-icon">
-                <input type="date" className="form-input" value={date} onChange={(e) => setDate(e.target.value)} required />
+            <div className="form-row">
+              <div className="form-group half">
+                <label>Lecture Date <span className="text-danger">*</span></label>
+                <div className="input-with-icon">
+                  <input type="date" className="form-input" value={date} onChange={(e) => setDate(e.target.value)} required />
+                </div>
+              </div>
+              <div className="form-group half">
+                <label>Lecture Type <span className="text-danger">*</span></label>
+                <select className="form-select" value={sessionType} onChange={(e) => setSessionType(e.target.value)} required>
+                  <option value="Theory">Theory</option>
+                  <option value="Practical">Practical</option>
+                </select>
               </div>
             </div>
 
@@ -218,16 +237,25 @@ const MarkAttendance = () => {
                 />
               </div>
               <div className="form-group half">
+                <label>Students Absent</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  placeholder="Auto-calculated"
+                  value={totalStudents ? absentees.length : ''}
+                  readOnly
+                  style={{ backgroundColor: '#f8fafc', color: '#64748b', cursor: 'not-allowed' }}
+                />
+              </div>
+              <div className="form-group half">
                 <label>Students Present <span className="text-danger">*</span></label>
                 <input 
-                  type="number" 
+                  type="text" 
                   className="form-input" 
-                  placeholder="Number of attendees" 
-                  min="0"
-                  max={totalStudents || 1000}
+                  placeholder="Auto-calculated" 
                   value={studentsPresent}
-                  onChange={(e) => setStudentsPresent(e.target.value)}
-                  required 
+                  readOnly
+                  style={{ backgroundColor: '#f8fafc', color: '#64748b', cursor: 'not-allowed' }}
                 />
               </div>
             </div>
@@ -250,12 +278,14 @@ const MarkAttendance = () => {
                   onKeyDown={handleRollKeyDown}
                 />
               </div>
-              <span className="hint-text" style={{ marginTop: '0.5rem', display: 'block' }}>Press comma or Enter to add a roll number.</span>
+              <p className="form-hint">Press comma or Enter to add a roll number.</p>
             </div>
 
-            <button type="submit" className="btn btn-primary submit-btn">
-              <Send size={16} /> Submit Attendance Record
-            </button>
+            <div className="form-actions border-top">
+              <button type="submit" className="btn btn-primary submit-btn">
+                <Send size={16} /> Submit Attendance Record
+              </button>
+            </div>
           </form>
           )}
         </div>
@@ -280,9 +310,11 @@ const MarkAttendance = () => {
             </div>
           </div>
 
-          <div className="info-alert">
-            <p><strong>Note:</strong> Submissions are time-stamped and immutable. Contact the HOD to correct an erroneous entry.</p>
-          </div>
+          {localStorage.getItem('userRole') !== 'HOD' && (
+            <div className="info-alert">
+              <p><strong>Note:</strong> Submissions are time-stamped and immutable. Contact the HOD to correct an erroneous entry.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

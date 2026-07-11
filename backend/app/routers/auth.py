@@ -67,11 +67,11 @@ async def signup(user_data: UserSignup, db: AsyncSession = Depends(get_db)):
     await db.commit()
     await db.refresh(new_user)
     
-    if user_data.role == RoleEnum.FACULTY:
+    if user_data.role in [RoleEnum.FACULTY, RoleEnum.HOD]:
         profile = FacultyProfile(
             user_id=new_user.id,
             department=user_data.department or "General",
-            designation=user_data.designation or "Faculty",
+            designation=user_data.designation or ("HOD" if user_data.role == RoleEnum.HOD else "Faculty"),
             assigned_classes=user_data.assigned_classes
         )
         db.add(profile)
@@ -115,3 +115,53 @@ def logout():
         data={"message": "Logged out successfully. Please remove your token."},
         error=None
     )
+
+from ..dependencies import get_current_active_user
+
+@router.get("/me", response_model=StandardResponse)
+async def get_me(current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)):
+    profile_dept = None
+    if current_user.role in [RoleEnum.HOD, RoleEnum.FACULTY]:
+        profile_result = await db.execute(
+            select(FacultyProfile).where(FacultyProfile.user_id == current_user.id)
+        )
+        profile = profile_result.scalars().first()
+        profile_dept = profile.department if profile else None
+
+    return StandardResponse(
+        success=True,
+        data={
+            "id": str(current_user.id),
+            "email": current_user.email,
+            "first_name": current_user.first_name,
+            "last_name": current_user.last_name,
+            "role": current_user.role,
+            "department": profile_dept
+        },
+        error=None
+    )
+
+@router.post("/repair-profile", response_model=StandardResponse)
+async def repair_profile(
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Creates a missing faculty_profile row for HOD/Faculty users who registered before the fix."""
+    if current_user.role not in [RoleEnum.HOD, RoleEnum.FACULTY]:
+        return StandardResponse(success=False, data=None, error="Only HOD/Faculty accounts need profiles.")
+
+    existing = await db.execute(
+        select(FacultyProfile).where(FacultyProfile.user_id == current_user.id)
+    )
+    if existing.scalars().first():
+        return StandardResponse(success=True, data={"message": "Profile already exists."}, error=None)
+
+    profile = FacultyProfile(
+        user_id=current_user.id,
+        department="AIDS",
+        designation="HOD" if current_user.role == RoleEnum.HOD else "Faculty",
+        assigned_classes=None
+    )
+    db.add(profile)
+    await db.commit()
+    return StandardResponse(success=True, data={"message": "Profile created successfully. Refresh the dashboard."}, error=None)

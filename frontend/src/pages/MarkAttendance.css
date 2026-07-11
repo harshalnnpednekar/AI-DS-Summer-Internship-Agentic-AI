@@ -199,7 +199,7 @@ input[type="date"]:invalid {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0; /* Changed from 2rem to 0 to prevent extra space when info-alert is hidden */
   padding: 0 0.5rem;
 }
 
@@ -248,6 +248,7 @@ input[type="date"]:invalid {
   border-radius: var(--radius-md);
   position: relative;
   overflow: hidden;
+  margin-top: 2rem; /* Added to maintain spacing between steps and note */
 }
 
 .info-alert::before {

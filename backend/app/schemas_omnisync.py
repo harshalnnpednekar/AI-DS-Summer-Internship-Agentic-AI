@@ -125,3 +125,4 @@ class LectureAttendanceSubmit(BaseModel):
     total_students_enrolled: int
     students_present_count: int
     absentee_roll_numbers: Optional[List[str]] = []
+    session_type: str = "Theory"

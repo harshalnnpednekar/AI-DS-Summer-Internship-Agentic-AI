@@ -4,8 +4,8 @@ This is the React-based frontend application for the VESIT AI & Data Science Omn
 
 ## Features
 
-- **Dashboard**: Real-time overview of attendance statistics and agent activities.
-- **Attendance Management**: Mark daily lecture attendance and track historical data with visual progress indicators.
+- **Role-Based Dashboards**: Distinct experiences for **HODs** (department-wide overview of all faculty attendance data) and **Faculty** (individual stats and class management).
+- **Attendance Management**: Mark daily lecture attendance with support for both **Theory** and **Practical** sessions. Track historical data with visual progress indicators.
 - **Defaulter Management**: Automated generation and broadcasting of defaulter lists based on customizable thresholds.
 - **Academic Calendar**: Visual timeline of critical upcoming deadlines parsed by the backend agent.
 - **Reports & Exports**: Secure hub for downloading official PDF, XLSX, and CSV reports.

@@ -77,7 +77,7 @@ backend/
     ├── models.py               # SQLAlchemy ORM models (Event, Student, SendLog)
     ├── schemas.py              # Pydantic request/response schemas
     ├── crud.py                 # Async CRUD operations
-    ├── seed.py                 # Script to populate initial test data
+    ├── seed_attendance.py      # Script to populate initial test data
     ├── main.py                 # FastAPI app entry point, middleware, routers
     │
     └── routers/
@@ -144,7 +144,7 @@ docker run -d \
   --name eduagent-pg \
   -e POSTGRES_USER=postgres \
   -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=event_notification \
+  -e POSTGRES_DB=event_notification_db \
   -p 5432:5432 \
   postgres:15
 ```
@@ -158,7 +158,7 @@ docker ps
 To connect to the database directly:
 
 ```bash
-docker exec -it eduagent-pg psql -U postgres -d event_notification
+docker exec -it eduagent-pg psql -U postgres -d event_notification_db
 ```
 
 ---
@@ -182,7 +182,7 @@ DEBUG=
 ### `.env` (example values)
 
 ```env
-DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/event_notification
+DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/event_notification_db
 APP_NAME=EduAgent
 DEBUG=True
 ```
@@ -219,7 +219,7 @@ alembic upgrade head
 ### Verify tables were created
 
 ```bash
-docker exec -it eduagent-pg psql -U postgres -d event_notification -c "\dt"
+docker exec -it eduagent-pg psql -U postgres -d event_notification_db -c "\dt"
 ```
 
 Expected output:
@@ -246,25 +246,17 @@ alembic downgrade -1
 The seed script inserts test students and upcoming events into the database. It checks for duplicates before inserting.
 
 ```bash
-python app/seed.py
+python seed_attendance.py
 ```
 
 ### What gets seeded
 
-**Students** (Department: AIDS):
-
-| Name    | Email                           |
-|---------|---------------------------------|
-| Member1 | puneetdhongade26@gmail.com      |
-| Member2 | puneetsdhongade2006@gmail.com   |
-
-**Events** (relative to current date):
-
-| Title                          | Days from now |
-|-------------------------------|---------------|
-| Unit Test 1                   | +2 days       |
-| Assignment Submission Deadline | +4 days       |
-| Guest Lecture — AI in Industry | +7 days       |
+The script initializes:
+- **Admin, HOD, and Faculty** user accounts
+- **Classes** (e.g., SE-A, TE-B) mapped to the AIDS department
+- **Subjects** (e.g., Data Visualization, Computer Vision)
+- **Faculty Profiles** linking users to specific classes and subjects
+- **Mock Lecture Attendance** for both Theory and Practical sessions across different dates
 
 > **Windows Note:** The seed script uses `SelectorEventLoop` for Windows compatibility with Psycopg v3 (avoids the ProactorEventLoop error).
 

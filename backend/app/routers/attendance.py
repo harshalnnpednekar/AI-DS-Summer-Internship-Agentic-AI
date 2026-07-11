@@ -5,7 +5,7 @@ from typing import List
 import uuid
 
 from ..database import get_db
-from ..models import User, RoleEnum, Class, Subject, FacultySubjectMapping, LectureAttendance
+from ..models import User, RoleEnum, Class, Subject, FacultySubjectMapping, LectureAttendance, FacultyProfile
 from ..dependencies import get_current_active_user, RoleChecker
 from ..schemas_omnisync import StandardResponse, LectureAttendanceSubmit
 
@@ -65,7 +65,8 @@ async def submit_attendance(
         topic_covered=attendance.topic_covered,
         total_students_enrolled=attendance.total_students_enrolled,
         students_present_count=attendance.students_present_count,
-        absentee_roll_numbers=attendance.absentee_roll_numbers
+        absentee_roll_numbers=attendance.absentee_roll_numbers,
+        session_type=attendance.session_type
     )
     db.add(new_attendance)
     await db.commit()
@@ -82,13 +83,30 @@ async def get_attendance_stats(
     current_user: User = Depends(allow_faculty_hod),
     db: AsyncSession = Depends(get_db)
 ):
+    hod_dept = None
     if current_user.role == RoleEnum.HOD:
-        all_lectures_result = await db.execute(
+        hod_profile_result = await db.execute(
+            select(FacultyProfile).where(FacultyProfile.user_id == current_user.id)
+        )
+        hod_profile = hod_profile_result.scalars().first()
+        hod_dept = hod_profile.department if hod_profile else None
+
+    if current_user.role == RoleEnum.HOD:
+        print(f"DEBUG: HOD role detected! hod_dept is: {hod_dept}")
+        query = (
             select(LectureAttendance, Class.name, Subject.name, User.first_name, User.last_name)
             .join(Class, LectureAttendance.class_id == Class.id)
             .join(Subject, LectureAttendance.subject_id == Subject.id)
             .join(User, LectureAttendance.faculty_id == User.id)
         )
+        if hod_dept:
+            query = query.where(Class.department_id == hod_dept)
+        # No filter → HOD sees all lectures across all departments
+        all_lectures_result = await db.execute(query)
+        all_lectures_list = all_lectures_result.all()
+        print(f"DEBUG: all_lectures length for HOD is {len(all_lectures_list)}")
+        # We need to recreate the iterator or just use the list
+        all_lectures = all_lectures_list
     else:
         all_lectures_result = await db.execute(
             select(LectureAttendance, Class.name, Subject.name, User.first_name, User.last_name)
@@ -97,8 +115,7 @@ async def get_attendance_stats(
             .join(User, LectureAttendance.faculty_id == User.id)
             .where(LectureAttendance.faculty_id == current_user.id)
         )
-        
-    all_lectures = all_lectures_result.all()
+        all_lectures = all_lectures_result.all()
     
     total_lectures = len(all_lectures)
     total_enrolled = sum(l[0].total_students_enrolled for l in all_lectures)
@@ -110,11 +127,12 @@ async def get_attendance_stats(
         
     class_wise_dict = {}
     for l, c_name, s_name, f_fname, f_lname in all_lectures:
-        key = f"{c_name}_{s_name}"
+        key = f"{c_name}_{s_name}_{l.session_type}"
         if key not in class_wise_dict:
             class_wise_dict[key] = {
                 "class": c_name,
                 "subject": s_name,
+                "session_type": l.session_type,
                 "professor": f"{f_fname} {f_lname}",
                 "lectures": 0,
                 "total_enrolled": 0,
@@ -136,13 +154,16 @@ async def get_attendance_stats(
         
     # Fetch recent 5 lectures for activity feed
     if current_user.role == RoleEnum.HOD:
-        recent_result = await db.execute(
+        query = (
             select(LectureAttendance, Class.name, Subject.name)
             .join(Class, LectureAttendance.class_id == Class.id)
             .join(Subject, LectureAttendance.subject_id == Subject.id)
-            .order_by(LectureAttendance.created_at.desc())
-            .limit(5)
         )
+        if hod_dept:
+            query = query.where(Class.department_id == hod_dept)
+        # No filter → HOD sees all recent lectures
+        query = query.order_by(LectureAttendance.created_at.desc()).limit(5)
+        recent_result = await db.execute(query)
     else:
         recent_result = await db.execute(
             select(LectureAttendance, Class.name, Subject.name)
@@ -160,6 +181,7 @@ async def get_attendance_stats(
             "id": str(l.id),
             "class_name": c_name,
             "subject_name": s_name,
+            "session_type": l.session_type,
             "date": l.lecture_date.strftime("%b %d, %Y"),
             "topic": l.topic_covered,
             "present": l.students_present_count,

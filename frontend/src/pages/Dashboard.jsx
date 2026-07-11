@@ -22,10 +22,20 @@ const Dashboard = () => {
   const [selectedLecture, setSelectedLecture] = useState(null);
 
   useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    const role = localStorage.getItem('userRole');
+
     const fetchStats = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
-        const response = await fetch('/api/attendance/stats', {
+        // Ensure HOD has a faculty_profile row (one-time repair for accounts created before the fix)
+        if (role === 'HOD') {
+          await fetch('/api/auth/repair-profile', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+          }).catch(() => {});
+        }
+
+        const response = await fetch(`/api/attendance/stats?t=${Date.now()}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -51,7 +61,7 @@ const Dashboard = () => {
       <div className="stats-grid">
         <div className="card stat-card">
           <div className="stat-header">
-            <h3>MY CLASSES' AVG. ATTENDANCE</h3>
+            <h3>{localStorage.getItem('userRole') === 'HOD' ? "CLASSES' AVG. ATTENDANCE" : "MY CLASSES' AVG. ATTENDANCE"}</h3>
             <div className="stat-icon bg-success-light text-success">
               <TrendingUp size={18} />
             </div>
@@ -86,8 +96,8 @@ const Dashboard = () => {
           <div className="action-icon text-secondary">
             <Users size={24} />
           </div>
-          <h3>My Attendance Data</h3>
-          <p>View attendance stats for your classes</p>
+          <h3>{localStorage.getItem('userRole') === 'HOD' ? 'Attendance Data' : 'My Attendance Data'}</h3>
+          <p>{localStorage.getItem('userRole') === 'HOD' ? 'View attendance stats for department classes' : 'View attendance stats for your classes'}</p>
           <button className="btn-text action-link" onClick={() => navigate('/attendance-data')}>Open &gt;</button>
         </div>
 
@@ -114,7 +124,7 @@ const Dashboard = () => {
                 <div style={{ display: 'flex', width: '100%', gap: '1rem', alignItems: 'flex-start' }}>
                   <div className="activity-indicator" style={{ backgroundColor: '#10B981' }}></div>
                 <div className="activity-content" style={{ flex: 1 }}>
-                  <h4>{lecture.class_name} • {lecture.subject_name}</h4>
+                  <h4>{lecture.class_name} • {lecture.subject_name} <span style={{fontWeight: 'normal', color: 'var(--color-text-secondary)', fontSize: '0.9em'}}>({lecture.session_type === 'Lecture' ? 'Theory' : lecture.session_type === 'Lab' ? 'Practical' : lecture.session_type || 'Theory'})</span></h4>
                   <p>{lecture.date} · Topic: {lecture.topic} · Attendance: {lecture.present}/{lecture.total}</p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>

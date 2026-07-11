@@ -17,6 +17,7 @@ class AudienceType(str, Enum):
     staff = "staff"
     public = "public"
     all = "ALL"
+    all_students = "all_students"
 
 class StatusType(str, Enum):
     sent = "sent"

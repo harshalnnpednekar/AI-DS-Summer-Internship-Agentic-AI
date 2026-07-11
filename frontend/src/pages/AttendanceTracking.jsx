@@ -17,7 +17,7 @@ const AttendanceTracking = () => {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('accessToken');
-        const response = await fetch('/api/attendance/stats', {
+        const response = await fetch(`/api/attendance/stats?t=${Date.now()}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
@@ -41,14 +41,14 @@ const AttendanceTracking = () => {
     <div className="page-container">
       <div className="page-header">
 
-        <h1 className="page-title">My Attendance Data</h1>
+        <h1 className="page-title">Attendance Data</h1>
         <p className="page-subtitle">Live data updated each time a faculty submits a lecture attendance record.</p>
       </div>
 
       <div className="tracking-stats-grid">
         <div className="card stat-card">
           <div className="stat-header">
-            <h3>MY AVG. ATTENDANCE</h3>
+            <h3>AVG. ATTENDANCE</h3>
             <div className="stat-icon bg-success-light text-success">
               <TrendingUp size={18} />
             </div>
@@ -105,22 +105,24 @@ const AttendanceTracking = () => {
           <table className="data-table">
             <thead>
               <tr>
-                <th>CLASS</th>
-                <th>SUBJECT</th>
-                <th>PROFESSOR</th>
-                <th>LECTURES</th>
-                <th>ATTENDANCE</th>
+                <th style={{textAlign: 'center'}}>CLASS</th>
+                <th style={{textAlign: 'center'}}>SUBJECT</th>
+                <th style={{textAlign: 'center'}}>TYPE</th>
+                <th style={{textAlign: 'center'}}>PROFESSOR</th>
+                <th style={{textAlign: 'center'}}>LECTURES</th>
+                <th style={{textAlign: 'center'}}>ATTENDANCE</th>
               </tr>
             </thead>
             <tbody>
               {filteredStats.map((stat, idx) => (
                 <tr key={idx}>
-                  <td><span className="class-badge">{stat.class}</span></td>
-                  <td className="font-medium">{stat.subject}</td>
-                  <td>{stat.professor}</td>
-                  <td>{stat.lectures}</td>
+                  <td style={{textAlign: 'center'}}><span className="class-badge">{stat.class}</span></td>
+                  <td className="font-medium" style={{textAlign: 'center'}}>{stat.subject}</td>
+                  <td style={{textAlign: 'center'}}>{stat.session_type === 'Lecture' ? 'Theory' : stat.session_type === 'Lab' ? 'Practical' : stat.session_type || 'Theory'}</td>
+                  <td style={{textAlign: 'center'}}>{stat.professor}</td>
+                  <td style={{textAlign: 'center'}}>{stat.lectures}</td>
                   <td>
-                    <div className="attendance-progress-cell">
+                    <div className="attendance-progress-cell" style={{justifyContent: 'center'}}>
                       <div className="attendance-progress-bg">
                         <div className="attendance-progress-fill" style={{ width: stat.attendance, backgroundColor: stat.attendance_num >= 75 ? 'var(--color-success)' : stat.attendance_num >= 60 ? 'var(--color-warning)' : 'var(--color-danger)' }}></div>
                       </div>

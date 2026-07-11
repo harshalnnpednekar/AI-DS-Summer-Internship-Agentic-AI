@@ -131,4 +131,5 @@ class LectureAttendance(Base):
     total_students_enrolled = Column(Integer, nullable=False)
     students_present_count = Column(Integer, nullable=False)
     absentee_roll_numbers = Column(JSONB, nullable=True)
+    session_type = Column(String(20), nullable=False, default="Lecture")
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
