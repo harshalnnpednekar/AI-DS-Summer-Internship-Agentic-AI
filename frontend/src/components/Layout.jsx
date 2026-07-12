@@ -40,11 +40,25 @@ const Layout = () => {
     year: 'numeric'
   });
 
-  // Read role from localStorage
-  const userRole = localStorage.getItem('userRole') || 'HOD';
-  const userName = localStorage.getItem('userName') || 'Dr. M. Vijayalakshmi';
-  const userDesc = localStorage.getItem('userDesc') || 'Head of Department';
-  const userInitials = localStorage.getItem('userInitials') || 'MV';
+  const [userInfo, setUserInfo] = useState({
+    role: localStorage.getItem('userRole') || 'HOD',
+    name: localStorage.getItem('userName') || 'Dr. M. Vijayalakshmi',
+    desc: localStorage.getItem('userDesc') || 'Head of Department',
+    initials: localStorage.getItem('userInitials') || 'MV'
+  });
+
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      setUserInfo({
+        role: localStorage.getItem('userRole') || 'HOD',
+        name: localStorage.getItem('userName') || 'Dr. M. Vijayalakshmi',
+        desc: localStorage.getItem('userDesc') || 'Head of Department',
+        initials: localStorage.getItem('userInitials') || 'MV'
+      });
+    };
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+    return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
+  }, []);
 
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -83,7 +97,7 @@ const Layout = () => {
         </div>
 
         <nav className="sidebar-nav">
-          {userRole !== 'STUDENT' && (
+          {userInfo.role !== 'STUDENT' && (
             <div className="nav-section">
               <h3 className="nav-section-title">FACULTY PORTAL</h3>
               <NavLink to="/mark-attendance" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
@@ -94,7 +108,7 @@ const Layout = () => {
           )}
 
           <div className="nav-section mt-4">
-            <h3 className="nav-section-title">{userRole === 'STUDENT' ? 'STUDENT PORTAL' : 'MANAGEMENT'}</h3>
+            <h3 className="nav-section-title">{userInfo.role === 'STUDENT' ? 'STUDENT PORTAL' : 'MANAGEMENT'}</h3>
             <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
               <LayoutDashboard size={20} />
               <span>Overview</span>
@@ -107,14 +121,14 @@ const Layout = () => {
               <Users size={20} />
               <span>Attendance Tracking</span>
             </NavLink>
-            {(userRole === 'HOD' || userRole === 'FACULTY') && (
+            {(userInfo.role === 'HOD' || userInfo.role === 'FACULTY') && (
               <NavLink to="/defaulter-management" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
                 <AlertTriangle size={20} />
                 <span>Defaulter Management</span>
                 <span className="nav-badge">8</span>
               </NavLink>
             )}
-            {userRole === 'HOD' && (
+            {userInfo.role === 'HOD' && (
               <>
                 <NavLink to="/reports" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
                   <FileText size={20} />
@@ -140,10 +154,10 @@ const Layout = () => {
             style={{ cursor: 'pointer' }}
             title="View your profile"
           >
-            <div className="user-avatar mv-avatar">{userInitials}</div>
+            <div className="user-avatar mv-avatar">{userInfo.initials}</div>
             <div className="user-info">
-               <h4>{userName}</h4>
-              <p>{userDesc}</p>
+               <h4>{userInfo.name}</h4>
+              <p>{userInfo.desc}</p>
             </div>
           </div>
           <button className="logout-btn" onClick={() => {

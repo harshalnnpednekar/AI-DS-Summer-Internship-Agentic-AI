@@ -74,6 +74,12 @@ const Profile = () => {
       });
       const data = await res.json();
       if (data.success) {
+        localStorage.setItem('userName', `${editForm.first_name} ${editForm.last_name}`);
+        localStorage.setItem('userDesc', editForm.designation || (profile.role === 'STUDENT' ? 'Student' : 'Faculty'));
+        const newInitials = getInitials(editForm.first_name, editForm.last_name);
+        localStorage.setItem('userInitials', newInitials);
+        window.dispatchEvent(new Event('profileUpdated'));
+
         setIsEditing(false);
         fetchProfile(); // refresh
       } else {

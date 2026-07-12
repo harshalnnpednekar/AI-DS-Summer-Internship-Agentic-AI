@@ -58,17 +58,35 @@ const Dashboard = () => {
     fetchStats();
   }, []);
 
+  const [userInfo, setUserInfo] = useState({
+    name: localStorage.getItem('userName') || 'User',
+    desc: localStorage.getItem('userDesc') || 'Faculty',
+    role: localStorage.getItem('userRole') || 'HOD'
+  });
+
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      setUserInfo({
+        name: localStorage.getItem('userName') || 'User',
+        desc: localStorage.getItem('userDesc') || 'Faculty',
+        role: localStorage.getItem('userRole') || 'HOD'
+      });
+    };
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+    return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
+  }, []);
+
   return (
     <div className="page-container">
       <div className="page-header">
-        <h1 className="page-title">Good morning, {localStorage.getItem('userName') || 'User'} 👋</h1>
-        <p className="page-subtitle">Academic Year {getAcademicYear()} · {localStorage.getItem('userDesc') || 'Faculty'}</p>
+        <h1 className="page-title">Good morning, {userInfo.name} 👋</h1>
+        <p className="page-subtitle">Academic Year {getAcademicYear()} · {userInfo.desc}</p>
       </div>
 
       <div className="stats-grid">
         <div className="card stat-card">
           <div className="stat-header">
-            <h3>{localStorage.getItem('userRole') === 'HOD' ? "CLASSES' AVG. ATTENDANCE" : "MY CLASSES' AVG. ATTENDANCE"}</h3>
+            <h3>{userInfo.role === 'HOD' ? "CLASSES' AVG. ATTENDANCE" : "MY CLASSES' AVG. ATTENDANCE"}</h3>
             <div className="stat-icon bg-success-light text-success">
               <TrendingUp size={18} />
             </div>
@@ -103,8 +121,8 @@ const Dashboard = () => {
           <div className="action-icon text-secondary">
             <Users size={24} />
           </div>
-          <h3>{localStorage.getItem('userRole') === 'HOD' ? 'Attendance Data' : 'My Attendance Data'}</h3>
-          <p>{localStorage.getItem('userRole') === 'HOD' ? 'View attendance stats for department classes' : 'View attendance stats for your classes'}</p>
+          <h3>{userInfo.role === 'HOD' ? 'Attendance Data' : 'My Attendance Data'}</h3>
+          <p>{userInfo.role === 'HOD' ? 'View attendance stats for department classes' : 'View attendance stats for your classes'}</p>
           <button className="btn-text action-link" onClick={() => navigate('/attendance-data')}>Open &gt;</button>
         </div>
 
