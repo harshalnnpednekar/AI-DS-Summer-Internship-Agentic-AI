@@ -183,6 +183,8 @@ The backend exposes a comprehensive set of RESTful endpoints prefixed with `/api
 | `POST` | `/` | Manually creates a new event | Yes (HOD/Faculty) |
 | `POST` | `/extract` | Parses an uploaded Academic Calendar PDF and extracts events | Yes (HOD/Faculty) |
 | `POST` | `/send-log` | Records an audit log when an automated email is dispatched | System/Internal |
+| `GET`  | `/broadcast-logs` | Retrieves broadcast delivery logs (simulated or actual) | Yes |
+| `DELETE` | `/broadcast-logs` | Clears all broadcast logs from the database | Yes |
 
 ### Attendance (`/api/attendance`)
 | Method | Endpoint | Description | Auth Required |

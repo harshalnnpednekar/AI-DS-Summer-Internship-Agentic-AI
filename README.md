@@ -49,7 +49,8 @@ Managing student attendance is simplified through an intuitive upload and proces
 OmniSync doesn't just store data; it actively works for you in the background.
 - **Scheduled Polling**: An asynchronous scheduler checks the database every 5 minutes for upcoming events occurring within the next 7 days.
 - **Email Delivery System**: Broadcasts customized HTML email notifications to registered users (using secure SMTP configuration).
-- **Delivery Logging**: Maintains a precise audit trail (`send_logs` table) to monitor the success or failure of dispatched emails.
+- **Delivery Logging**: Maintains a precise audit trail (`send_logs` table) to monitor the success or failure of dispatched emails, with a configuration interface to manage and securely wipe logs when necessary.
+- **Dynamic Configuration**: A dedicated UI allows adjusting defaulter thresholds, broadcast toggles, and UI preferences that instantly reflect and persist across user sessions.
 
 ---
 

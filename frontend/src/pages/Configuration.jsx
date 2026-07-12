@@ -1,9 +1,44 @@
-import React from 'react';
-import { Sliders, Send, Trash2, Clock, AlertTriangle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Sliders, Send, Trash2, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 import './Pages.css';
 import './Configuration.css';
 
 const Configuration = () => {
+  const [config, setConfig] = useState(() => {
+    const saved = localStorage.getItem('agentConfig');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse config", e);
+      }
+    }
+    return {
+      threshold: 75,
+      autoGenerate: true,
+      notifyParents: true,
+      autoBroadcast: false,
+      dailyTime: '09:00'
+    };
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+
+  const handleSave = () => {
+    setIsSaving(true);
+    // Simulate API call and save to localStorage
+    setTimeout(() => {
+      localStorage.setItem('agentConfig', JSON.stringify(config));
+      setIsSaving(false);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }, 800);
+  };
+
+  const handleChange = (key, value) => {
+    setConfig(prev => ({ ...prev, [key]: value }));
+  };
+
   return (
     <div className="page-container">
       <div className="page-header">
@@ -26,8 +61,14 @@ const Configuration = () => {
               <p>Students below this percentage will be flagged as defaulters.</p>
             </div>
             <div className="setting-control-slider">
-              <input type="range" min="50" max="100" defaultValue="75" className="range-slider" />
-              <span className="slider-value">75%</span>
+              <input 
+                type="range" 
+                min="0" max="100" 
+                value={config.threshold} 
+                onChange={(e) => handleChange('threshold', e.target.value)}
+                className="range-slider" 
+              />
+              <span className="slider-value">{config.threshold}%</span>
             </div>
           </div>
           
@@ -38,7 +79,11 @@ const Configuration = () => {
             </div>
             <div className="setting-control">
               <label className="toggle-switch">
-                <input type="checkbox" defaultChecked />
+                <input 
+                  type="checkbox" 
+                  checked={config.autoGenerate}
+                  onChange={(e) => handleChange('autoGenerate', e.target.checked)}
+                />
                 <span className="slider round"></span>
               </label>
             </div>
@@ -51,7 +96,11 @@ const Configuration = () => {
             </div>
             <div className="setting-control">
               <label className="toggle-switch">
-                <input type="checkbox" defaultChecked />
+                <input 
+                  type="checkbox" 
+                  checked={config.notifyParents}
+                  onChange={(e) => handleChange('notifyParents', e.target.checked)}
+                />
                 <span className="slider round"></span>
               </label>
             </div>
@@ -72,7 +121,11 @@ const Configuration = () => {
             </div>
             <div className="setting-control">
               <label className="toggle-switch">
-                <input type="checkbox" />
+                <input 
+                  type="checkbox" 
+                  checked={config.autoBroadcast}
+                  onChange={(e) => handleChange('autoBroadcast', e.target.checked)}
+                />
                 <span className="slider round"></span>
               </label>
             </div>
@@ -84,17 +137,35 @@ const Configuration = () => {
               <p>Scheduled time for daily deadline reminder broadcasts.</p>
             </div>
             <div className="setting-control">
-              <div className="time-input">
-                <span>09:00</span>
-                <Clock size={16} />
+              <div className="time-input" style={{ position: 'relative' }}>
+                <input 
+                  type="time" 
+                  value={config.dailyTime}
+                  onChange={(e) => handleChange('dailyTime', e.target.value)}
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    fontSize: '1rem',
+                    color: 'var(--color-text-primary)',
+                    fontFamily: 'inherit',
+                    outline: 'none'
+                  }}
+                />
               </div>
             </div>
           </div>
           
-          <div className="warning-banner">
-            <AlertTriangle size={18} className="text-warning" />
-            <p>Auto-broadcast is currently <strong>disabled</strong>. All broadcasts require explicit HOD approval from the Defaulter Management page.</p>
-          </div>
+          {config.autoBroadcast ? (
+            <div className="warning-banner" style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
+              <CheckCircle size={18} style={{ color: 'var(--color-success)' }} />
+              <p>Auto-broadcast is currently <strong style={{ color: 'var(--color-success)' }}>enabled</strong>. Defaulter lists will be sent out instantly without requiring HOD approval.</p>
+            </div>
+          ) : (
+            <div className="warning-banner">
+              <AlertTriangle size={18} className="text-warning" />
+              <p>Auto-broadcast is currently <strong>disabled</strong>. All broadcasts require explicit HOD approval from the Defaulter Management page.</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -111,14 +182,50 @@ const Configuration = () => {
             <p>Permanently deletes all stored broadcast history. This action cannot be undone.</p>
           </div>
           <div className="setting-control">
-            <button className="btn btn-outline btn-danger-outline">Clear Logs</button>
+            <button 
+              className="btn btn-outline btn-danger-outline"
+              onClick={async () => {
+                if(window.confirm('Are you sure you want to clear all logs? This cannot be undone.')) {
+                  try {
+                    const token = localStorage.getItem('token');
+                    const res = await fetch('/api/events/broadcast-logs', {
+                      method: 'DELETE',
+                      headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                      alert('Logs cleared successfully.');
+                    } else {
+                      alert('Failed to clear logs.');
+                    }
+                  } catch (e) {
+                    alert('Error clearing logs.');
+                  }
+                }
+              }}
+            >
+              Clear Logs
+            </button>
           </div>
         </div>
       </div>
       
       <div className="form-actions">
-        <button className="btn btn-primary" style={{ padding: '0.75rem 2rem' }}>Save Configuration</button>
+        <button 
+          className="btn btn-primary" 
+          style={{ padding: '0.75rem 2rem' }}
+          onClick={handleSave}
+          disabled={isSaving}
+        >
+          {isSaving ? 'Saving...' : 'Save Configuration'}
+        </button>
       </div>
+
+      {showToast && (
+        <div className="toast-notification">
+          <CheckCircle size={20} />
+          Configuration saved successfully!
+        </div>
+      )}
     </div>
   );
 };

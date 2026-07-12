@@ -43,7 +43,12 @@ OmniSync features custom-built, drag-and-drop file upload zones.
 - Provides immediate visual feedback during network requests (loading spinners, success indicators).
 - Gracefully handles server-side errors, displaying intuitive, user-friendly error messages (e.g., "Network error occurred during upload") rather than cryptic stack traces.
 
-### 3. Responsive & Modern Aesthetics
+### 3. Agent Configuration & Settings
+- **Persistent State**: Configuration settings (e.g., defaulter thresholds, broadcast toggles) are managed via a dedicated Configuration dashboard and persisted across sessions.
+- **Custom Notifications**: Refined user feedback replaces standard browser alerts with custom, beautifully styled toast notifications that align with the platform's premium design system.
+- **Log Management**: Securely interface with the backend to permanently clear broadcast logs.
+
+### 4. Responsive & Modern Aesthetics
 - **Glassmorphism & Shadows**: Utilizes subtle shadows, rounded corners (`rounded-xl`), and blurred backdrops to create a premium, modern aesthetic.
 - **Responsive Grid**: Built on CSS Grid and Flexbox to ensure the interface adapts flawlessly to desktop, tablet, and mobile screens.
 - **Color Palette**: Adheres to a carefully curated color palette designed to reduce eye strain while maintaining high contrast for accessibility.
