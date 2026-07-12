@@ -44,7 +44,7 @@ const Reports = () => {
     {
       id: 5,
       title: 'Broadcast Activity Log — Q2 2025',
-      description: 'Complete log of all automated notifications sent via Email, WhatsApp, and Teams.',
+      description: 'Complete log of all automated notifications sent via Email and Teams.',
       icon: <Radio size={24} className="report-icon-color" />,
       date: 'Jul 7, 2025',
       size: '850 KB',

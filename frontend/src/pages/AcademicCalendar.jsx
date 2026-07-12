@@ -260,18 +260,7 @@ const AcademicCalendar = () => {
                 </label>
               </div>
 
-              <div className="channel-item">
-                <div className="channel-icon bg-success-light text-success">
-                  <MessageSquare size={16} />
-                </div>
-                <div className="channel-info">
-                  <h4>WhatsApp</h4>
-                </div>
-                <label className="toggle-switch">
-                  <input type="checkbox" defaultChecked />
-                  <span className="slider round"></span>
-                </label>
-              </div>
+
 
 
             </div>

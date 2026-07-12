@@ -2,8 +2,8 @@ import os
 import requests
 from typing import TypedDict, List, Dict, Any
 from datetime import datetime
+# pyrefly: ignore [missing-import]
 from langgraph.graph import StateGraph, END
-from groq import Groq
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -11,48 +11,26 @@ logger = logging.getLogger(__name__)
 
 class NotificationState(TypedDict):
     event: Dict[str, Any]
-    students: List[Dict[str, Any]]
+    users: List[Dict[str, Any]]
     notification_message: str
     status: str
     error: str
     notification_data: Dict[str, Any]
 
 class NotificationAgent:
-    def __init__(self, api_key: str = None):
-        self.client = Groq(
-            api_key=api_key or os.getenv("GROQ_API_KEY")
-        )
-        self.model = "llama-3.1-8b-instant"
+    def __init__(self):
         # Email service URL for sending notifications
         self.email_service_url = os.getenv("EMAIL_SERVICE_URL", "http://localhost:8002")
 
     def generate_notification_message(self, state: NotificationState) -> NotificationState:
         event = state["event"]
         
-        prompt = f"""
-Generate a concise email subject and body for the following event:
-
-Event Title: {event.get('title')}
-Event Description: {event.get('description')}
-Event Date: {event.get('date')}
-Department: {event.get('department')}
-
-The message should be professional, clear, and encouraging attendance.
-Format the response as:
-SUBJECT: [subject line]
-BODY: [email body]
-"""
-        
         try:
-            message = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=500,
-            )
+            subject = f"Reminder: {event.get('title')}"
+            body = f"Hello,\\n\\nThis is a reminder for the upcoming event:\\n\\nTitle: {event.get('title')}\\nDate: {event.get('date')}\\nDepartment: {event.get('department')}\\n\\nDescription: {event.get('description')}\\n\\nPlease make sure to attend.\\n\\nBest regards,\\nEduAgent Notification System"
             
-            response_text = message.choices[0].message.content
+            response_text = f"SUBJECT: {subject}\\nBODY: {body}"
+            
             state["notification_message"] = response_text
             state["status"] = "message_generated"
             return state
@@ -64,15 +42,15 @@ BODY: [email body]
 
     def validate_event_data(self, state: NotificationState) -> NotificationState:
         event = state["event"]
-        students = state["students"]
+        users = state["users"]
         
         if not event or not event.get("event_id"):
             state["error"] = "Invalid event data"
             state["status"] = "validation_failed"
             return state
         
-        if not students or len(students) == 0:
-            state["error"] = "No students found for event"
+        if not users or len(users) == 0:
+            state["error"] = "No users found for event"
             state["status"] = "validation_failed"
             return state
         
@@ -81,19 +59,19 @@ BODY: [email body]
 
     def prepare_notification_payload(self, state: NotificationState) -> NotificationState:
         event = state["event"]
-        students = state["students"]
+        users = state["users"]
         
         payload = {
             "event_id": event.get("event_id"),
             "event_title": event.get("title"),
             "event_date": event.get("date"),
-            "students": [
+            "students": [  # Keeping the key as 'students' for backward compatibility with email_service payload
                 {
-                    "name": s.get("name", "Student"),
-                    "email": s.get("email"),
-                    "department": s.get("department"),
+                    "name": u.get("name", "User"),
+                    "email": u.get("email"),
+                    "department": u.get("department"),
                 }
-                for s in students
+                for u in users
             ],
             "notification_message": state.get("notification_message", ""),
             "created_at": datetime.now().isoformat()
@@ -109,7 +87,7 @@ BODY: [email body]
             return state
             
         logger.info(f"Notification prepared for event: {state['event'].get('event_id')}")
-        logger.info(f"Recipients: {len(state['students'])} students")
+        logger.info(f"Recipients: {len(state['users'])} users")
         state["status"] = "logged"
         return state
     
@@ -131,8 +109,8 @@ BODY: [email body]
 
 
 class NotificationWorkflow:
-    def __init__(self, api_key: str = None):
-        self.agent = NotificationAgent(api_key)
+    def __init__(self):
+        self.agent = NotificationAgent()
         self.graph = self._build_graph()
 
     def _build_graph(self):
@@ -154,10 +132,10 @@ class NotificationWorkflow:
         
         return workflow.compile()
 
-    def process_event(self, event: Dict[str, Any], students: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def process_event(self, event: Dict[str, Any], users: List[Dict[str, Any]]) -> Dict[str, Any]:
         initial_state = NotificationState(
             event=event,
-            students=students,
+            users=users,
             notification_message="",
             status="initialized",
             error=""
@@ -166,10 +144,10 @@ class NotificationWorkflow:
         result = self.graph.invoke(initial_state)
         return result
 
-    def batch_process_events(self, events: List[Dict[str, Any]], students_map: Dict[str, List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
+    def batch_process_events(self, events: List[Dict[str, Any]], users_map: Dict[str, List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
         results = []
         for event in events:
-            students = students_map.get(event.get("event_id"), [])
-            result = self.process_event(event, students)
+            users = users_map.get(event.get("event_id"), [])
+            result = self.process_event(event, users)
             results.append(result)
         return results

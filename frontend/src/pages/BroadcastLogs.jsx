@@ -8,7 +8,7 @@ const BroadcastLogs = () => {
   // Using static exact data from the mockup
   const logs = [
     { id: 1, date: 'Jul 9, 2025', time: '09:00 AM', channel: 'Email', type: 'Deadline Reminder', message: 'Insem Exam reminder sent to all SE & TE students', recipients: 412, status: 'Delivered' },
-    { id: 2, date: 'Jul 9, 2025', time: '09:01 AM', channel: 'WhatsApp', type: 'Deadline Reminder', message: 'Insem Exam reminder broadcast to department group', recipients: 390, status: 'Delivered' },
+
     { id: 3, date: 'Jul 8, 2025', time: '08:30 AM', channel: 'Email', type: 'Defaulter Alert', message: 'Defaulter list notification sent to parents/guardians', recipients: 8, status: 'Delivered' },
     { id: 4, date: 'Jul 7, 2025', time: '05:00 PM', channel: 'MS Teams', type: 'Faculty Notice', message: 'Faculty review meeting agenda distributed', recipients: 14, status: 'Failed' },
     { id: 5, date: 'Jul 7, 2025', time: '10:15 AM', channel: 'Email', type: 'Event Announcement', message: 'Guest lecture on NLP announcement sent', recipients: 480, status: 'Delivered' }
@@ -17,7 +17,7 @@ const BroadcastLogs = () => {
   const getChannelIcon = (channel) => {
     switch (channel) {
       case 'Email': return <Mail size={14} className="mr-2" />;
-      case 'WhatsApp': return <MessageSquare size={14} className="mr-2" />;
+
       case 'MS Teams': return <AlertCircle size={14} className="mr-2" />; // Using alert as placeholder for teams icon
       default: return null;
     }
@@ -39,7 +39,7 @@ const BroadcastLogs = () => {
             <span className="count-badge">5</span>
           </div>
           <div className="log-filters">
-            {['All', 'Email', 'WhatsApp', 'MS Teams'].map(filter => (
+            {['All', 'Email', 'MS Teams'].map(filter => (
               <button 
                 key={filter}
                 className={`filter-btn ${activeFilter === filter ? 'active' : ''}`}
