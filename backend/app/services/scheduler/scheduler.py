@@ -73,10 +73,14 @@ class SchedulerManager:
     def register_notification_callback(self, callback):
         self.callbacks.append(callback)
 
-    def trigger_callbacks(self, event: Dict[str, Any], users: List[Dict[str, Any]]):
+    async def trigger_callbacks(self, event: Dict[str, Any], users: List[Dict[str, Any]]):
         for callback in self.callbacks:
             try:
-                callback(event, users)
+                import inspect
+                if inspect.iscoroutinefunction(callback):
+                    await callback(event, users)
+                else:
+                    callback(event, users)
             except Exception as e:
                 logger.error(f"Callback failed: {e}")
 
@@ -97,7 +101,7 @@ class SchedulerManager:
                         users = await fetch_users_by_department(db, event_dict.get("department") or "ALL")
                         
                         if users:
-                            self.trigger_callbacks(event_dict, users)
+                            await self.trigger_callbacks(event_dict, users)
         except Exception as e:
             logger.error(f"Failed to check events: {e}")
 

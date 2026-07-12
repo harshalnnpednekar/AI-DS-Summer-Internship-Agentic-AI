@@ -21,12 +21,14 @@ class Settings(BaseSettings):
     # CORS
     ALLOWED_ORIGINS: list[str] = ["*"]
 
-    # Email (for sending logs, though we are just storing logs in this system)
-    SMTP_HOST: Optional[str] = None
+    # Email Settings
+    SMTP_SERVER: Optional[str] = None
     SMTP_PORT: int = 587
     SMTP_USER: Optional[str] = None
     SMTP_PASSWORD: Optional[str] = None
+    SMTP_USE_TLS: bool = True
     EMAIL_FROM: Optional[str] = None
+    EMAIL_FROM_NAME: str = "EduAgent Notifications"
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -1,10 +1,9 @@
-import os
-import requests
+import logging
 from typing import TypedDict, List, Dict, Any
 from datetime import datetime
-# pyrefly: ignore [missing-import]
 from langgraph.graph import StateGraph, END
-import logging
+from app.database import SessionLocal
+from app.services.email.send_email import send_email
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -18,10 +17,6 @@ class NotificationState(TypedDict):
     notification_data: Dict[str, Any]
 
 class NotificationAgent:
-    def __init__(self):
-        # Email service URL for sending notifications
-        self.email_service_url = os.getenv("EMAIL_SERVICE_URL", "http://localhost:8002")
-
     def generate_notification_message(self, state: NotificationState) -> NotificationState:
         event = state["event"]
         
@@ -65,16 +60,7 @@ class NotificationAgent:
             "event_id": event.get("event_id"),
             "event_title": event.get("title"),
             "event_date": event.get("date"),
-            "students": [  # Keeping the key as 'students' for backward compatibility with email_service payload
-                {
-                    "name": u.get("name", "User"),
-                    "email": u.get("email"),
-                    "department": u.get("department"),
-                }
-                for u in users
-            ],
             "notification_message": state.get("notification_message", ""),
-            "created_at": datetime.now().isoformat()
         }
         
         state["notification_data"] = payload
@@ -86,23 +72,21 @@ class NotificationAgent:
             logger.error(f"Failed to send notification for event {state['event'].get('event_id')}: {state.get('error')}")
             return state
             
-        logger.info(f"Notification prepared for event: {state['event'].get('event_id')}")
-        logger.info(f"Recipients: {len(state['users'])} users")
+        logger.info(f"Notification processing completed for event: {state['event'].get('event_id')}")
+        logger.info(f"Attempted to notify {len(state['users'])} users")
         state["status"] = "logged"
         return state
     
-    def send_notification(self, state: NotificationState) -> NotificationState:
-        
-        payload = state.get("notification_data")
+    async def send_notification(self, state: NotificationState) -> NotificationState:
+        event = state["event"]
+        users = state["users"]
         try:
-            logger.info(f"Sending payload to {self.email_service_url}/notify")
-            response = requests.post(f"{self.email_service_url}/notify", json=payload, timeout=15)
-            response.raise_for_status()
+            async with SessionLocal() as db:
+                for user in users:
+                    await send_email(event, user, db)
             state["status"] = "sent"
         except Exception as e:
             logger.error(f"send_notification exception: {e}")
-            if hasattr(e, 'response') and e.response is not None:
-                logger.error(f"Response: {e.response.text}")
             state["error"] = str(e)
             state["status"] = "send_failed"
         return state
@@ -132,7 +116,7 @@ class NotificationWorkflow:
         
         return workflow.compile()
 
-    def process_event(self, event: Dict[str, Any], users: List[Dict[str, Any]]) -> Dict[str, Any]:
+    async def process_event(self, event: Dict[str, Any], users: List[Dict[str, Any]]) -> Dict[str, Any]:
         initial_state = NotificationState(
             event=event,
             users=users,
@@ -141,13 +125,6 @@ class NotificationWorkflow:
             error=""
         )
         
-        result = self.graph.invoke(initial_state)
+        # We must use ainvoke for async graph execution
+        result = await self.graph.ainvoke(initial_state)
         return result
-
-    def batch_process_events(self, events: List[Dict[str, Any]], users_map: Dict[str, List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
-        results = []
-        for event in events:
-            users = users_map.get(event.get("event_id"), [])
-            result = self.process_event(event, users)
-            results.append(result)
-        return results

@@ -7,7 +7,7 @@ from ..database import get_db
 from ..models import User, FacultyProfile, StudentProfile, RoleEnum
 from ..auth import verify_password, create_access_token, get_password_hash
 from ..config import settings
-from ..schemas_omnisync import StandardResponse, Token, UserSignup
+from ..schemas import StandardResponse, Token, UserSignup
 
 router = APIRouter(
     prefix="/api/auth",

@@ -8,7 +8,7 @@ if sys.platform == "win32":
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import events, students, logs, auth, attendance, defaulter, calendar, users
+from app.routers import events, auth, attendance, users
 import logging
 from contextlib import asynccontextmanager
 
@@ -21,9 +21,9 @@ logger = logging.getLogger(__name__)
 scheduler_manager = SchedulerManager()
 notification_workflow = NotificationWorkflow()
 
-def send_notification_callback(event, users):
+async def send_notification_callback(event, users):
     logger.info(f"Processing event: {event.get('title')}")
-    result = notification_workflow.process_event(event, users)
+    result = await notification_workflow.process_event(event, users)
     
     if result.get("status") == "logged":
         logger.info(f"Notification prepared for {len(users)} users")
@@ -58,12 +58,8 @@ app.add_middleware(
 )
 
 app.include_router(events.router)
-app.include_router(students.router)
-app.include_router(logs.router)
 app.include_router(auth.router)
 app.include_router(attendance.router)
-app.include_router(defaulter.router)
-app.include_router(calendar.router)
 app.include_router(users.router)
 
 @app.get("/")
