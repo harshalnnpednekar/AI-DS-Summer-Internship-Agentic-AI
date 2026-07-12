@@ -52,7 +52,7 @@ const Layout = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await fetch('http://localhost:8000/events/upcoming?days=7');
+        const response = await fetch('/api/events/upcoming?days=7');
         const data = await response.json();
         if (Array.isArray(data)) {
           setNotifications(data);

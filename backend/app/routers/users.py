@@ -1,9 +1,11 @@
+from app import crud
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import List, Dict, Any
 from app.database import get_db
 from app.models import User, FacultyProfile, StudentProfile, RoleEnum
+from app.schemas import StudentResponse
 import logging
 
 logger = logging.getLogger(__name__)

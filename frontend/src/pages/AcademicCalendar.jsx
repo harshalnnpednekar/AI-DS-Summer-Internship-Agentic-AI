@@ -44,7 +44,7 @@ const AcademicCalendar = () => {
     const fetchEvents = async () => {
       try {
         const token = localStorage.getItem('accessToken');
-        const response = await fetch('/api/calendar/events', {
+        const response = await fetch('/api/events/events', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
@@ -90,7 +90,7 @@ const AcademicCalendar = () => {
 
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/calendar/extract', {
+      const response = await fetch('/api/events/extract', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -112,7 +112,7 @@ const AcademicCalendar = () => {
         setUploadStatus('success');
         
         // After successful upload, fetch all events again to refresh the list
-        const response2 = await fetch('/api/calendar/events', {
+        const response2 = await fetch('/api/events/events', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data2 = await response2.json();

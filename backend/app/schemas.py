@@ -210,6 +210,7 @@ class LectureAttendanceSubmit(BaseModel):
     class_id: UUID
     subject_id: UUID
     lecture_date: date
+    time_slot: Optional[str] = None
     topic_covered: str
     total_students_enrolled: int
     students_present_count: int

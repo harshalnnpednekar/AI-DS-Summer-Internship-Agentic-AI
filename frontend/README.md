@@ -1,47 +1,94 @@
-# OmniSync Portal — Frontend
+# OmniSync Frontend Application
 
-This is the React-based frontend application for the VESIT AI & Data Science OmniSync Platform. It provides a unified, premium-grade enterprise interface for faculty members to manage attendance, track academic calendars, and generate defaulter lists automatically.
+Welcome to the OmniSync Frontend repository. This directory houses the React-based user interface that serves as the primary gateway for Head of Departments, Faculty, and Students to interact with the OmniSync platform. Designed with user experience (UX) and performance in mind, this application delivers a responsive, dynamic, and intuitive digital environment.
 
-## Features
+## 🌟 Technical Stack
 
-- **Role-Based Dashboards**: Distinct experiences for **HODs** (department-wide overview of all faculty attendance data) and **Faculty** (individual stats and class management).
-- **Attendance Management**: Mark daily lecture attendance with support for both **Theory** and **Practical** sessions. Track historical data with visual progress indicators.
-- **Defaulter Management**: Automated generation and broadcasting of defaulter lists based on customizable thresholds.
-- **Academic Calendar**: Visual timeline of critical upcoming deadlines parsed by the backend agent.
-- **Reports & Exports**: Secure hub for downloading official PDF, XLSX, and CSV reports.
+- **Core Library**: [React.js](https://reactjs.org/) (v18+) utilizing modern Functional Components and Hooks.
+- **Build Tool**: [Vite](https://vitejs.dev/) - chosen for its significantly faster cold starts and Hot Module Replacement (HMR) compared to traditional bundlers like Webpack.
+- **Routing**: [React Router DOM](https://reactrouter.com/) for seamless, client-side Navigation and protected route enforcement.
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) - a utility-first CSS framework that allows for rapid, consistent UI development without leaving the JSX markup.
+- **Icons**: [Lucide React](https://lucide.dev/) for crisp, scalable, and customizable SVG iconography.
 
-## Technology Stack
+## 🗂️ Directory Structure
 
-- **React 18**
-- **Vite**
-- **React Router v6**
-- **Lucide Icons**
-- **Vanilla CSS** (Custom Design System with CSS Variables)
+```text
+frontend/
+├── public/                 # Static assets that bypass the bundler (e.g., favicons)
+├── src/                    # Source code
+│   ├── assets/             # Images, fonts, and local stylesheets
+│   ├── components/         # Reusable UI components (Buttons, Modals, Layouts)
+│   ├── pages/              # Top-level route components (Views)
+│   │   ├── Login.jsx       # Authentication portal
+│   │   ├── Dashboard.jsx   # Role-specific main dashboard
+│   │   ├── AcademicCalendar.jsx # Calendar upload and event management view
+│   │   └── Attendance.jsx  # Defaulter list generation and stats view
+│   ├── App.jsx             # Root React component and Router configuration
+│   └── main.jsx            # Application entry point and DOM rendering
+├── index.html              # Base HTML template
+├── vite.config.js          # Vite configuration and proxy settings
+├── tailwind.config.js      # Tailwind CSS theme customization and overrides
+└── package.json            # Node.js dependencies and NPM scripts
+```
 
-## Setup Instructions
+## 🚀 Key Features & UI/UX Design
+
+### 1. Role-Based Dashboards
+The application dynamically alters its UI based on the authenticated user's role (encoded in the JWT and local storage).
+- **HOD/Faculty View**: Grants access to administrative features, including the ability to upload Academic Calendar PDFs and process Attendance CSV/Excel files.
+- **Student View**: A streamlined, read-only interface focused on upcoming critical deadlines and personal attendance statistics.
+
+### 2. File Upload & Processing Interfaces
+OmniSync features custom-built, drag-and-drop file upload zones.
+- Provides immediate visual feedback during network requests (loading spinners, success indicators).
+- Gracefully handles server-side errors, displaying intuitive, user-friendly error messages (e.g., "Network error occurred during upload") rather than cryptic stack traces.
+
+### 3. Responsive & Modern Aesthetics
+- **Glassmorphism & Shadows**: Utilizes subtle shadows, rounded corners (`rounded-xl`), and blurred backdrops to create a premium, modern aesthetic.
+- **Responsive Grid**: Built on CSS Grid and Flexbox to ensure the interface adapts flawlessly to desktop, tablet, and mobile screens.
+- **Color Palette**: Adheres to a carefully curated color palette designed to reduce eye strain while maintaining high contrast for accessibility.
+
+## 🛠️ Installation & Setup
 
 ### Prerequisites
-- Node.js (v18 or higher recommended)
-- npm
+- Node.js (v18.0.0 or higher)
+- NPM (v8.0.0 or higher)
 
-### Installation
+### 1. Install Dependencies
+Navigate to the `frontend` directory and install the required NPM packages:
+```bash
+npm install
+```
 
-1. **Clone or navigate to the project directory:**
-   ```bash
-   cd frontend
-   ```
+### 2. Development Server
+Start the Vite development server:
+```bash
+npm run dev
+```
+The application will launch on `http://localhost:5173`. 
 
-2. **Install the required dependencies:**
-   ```bash
-   npm install
-   ```
+### 3. API Proxy Configuration
+To circumvent CORS (Cross-Origin Resource Sharing) issues during local development, Vite is configured to proxy API requests. Any request prefixed with `/api` is automatically routed to the FastAPI backend running on `http://localhost:8000`.
 
-3. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
+This configuration is maintained in `vite.config.js`:
+```javascript
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      }
+    }
+  }
+})
+```
+*Note: Ensure your backend server is actively running when testing API integrations locally.*
 
-4. **Access the application:**
-   Open your browser and navigate to `http://localhost:5173`. 
-   
-   *Note: The frontend is now fully connected to the backend API via proxy configured in Vite. You must have the backend server running on `localhost:8000` to handle authentication (Sign Up / Log In) and data loading successfully.*
+### 4. Building for Production
+To generate a highly optimized, minified production build:
+```bash
+npm run build
+```
+The output will be placed in the `dist/` directory, ready to be served by Nginx, Apache, or any static hosting provider (e.g., Vercel, Netlify).

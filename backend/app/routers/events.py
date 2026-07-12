@@ -1,15 +1,24 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from app.models import SendLog
+from app.schemas import SendLogCreate
+from app.services.calendar_extractor.extractor import extract_events_from_pdf
+import uuid
+import os
+from datetime import datetime
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Union
 from app.database import get_db
-from app.schemas import EventCreate, EventResponse
-from app.models import Event
+from app.schemas import EventCreate, EventResponse, StandardResponse, SendLogResponse
+from app.models import Event, RoleEnum
+from app.dependencies import get_current_active_user, RoleChecker
+from sqlalchemy import select
+from uuid import UUID
 from app import crud
 import logging
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/events", tags=["events"])
+router = APIRouter(prefix="/api/events", tags=["events"])
 
 @router.get("/upcoming", response_model=List[EventResponse])
 async def read_upcoming_events(
@@ -56,12 +65,6 @@ async def create_events(
             detail=f"Failed to create event: {str(e)}"
         )
 
-
-    prefix="/api/calendar",
-    tags=["Academic Calendar"],
-)
-
-logger = logging.getLogger(__name__)
 
 allow_admin = RoleChecker([RoleEnum.HOD, RoleEnum.FACULTY])
 
@@ -113,21 +116,25 @@ async def extract_calendar(
         # We can either save them to the database or just return them. 
         # The prompt says "parses it and broadcasts deadline alerts automatically".
         # Let's save them to the DB.
+        existing_result = await db.execute(select(Event))
+        existing_events = existing_result.scalars().all()
+        existing_signatures = {(e.title, e.date) for e in existing_events}
         
         new_events_count = 0
         for event_data in extracted_events:
-            # We skip duplicates in DB if we want, or just insert them.
-            # Let's just insert them.
-            new_event = Event(
-                title=event_data["title"],
-                description=event_data["description"],
-                date=datetime.strptime(event_data["date"], "%Y-%m-%d").date(),
-                department=event_data["department"],
-                audience=event_data["audience"]
-            )
-            db.add(new_event)
-            new_events_count += 1
+            event_date = datetime.strptime(event_data["date"], "%Y-%m-%d").date()
+            sig = (event_data["title"], event_date)
             
+            if sig not in existing_signatures:
+                new_event = Event(
+                    title=event_data["title"],
+                    description=event_data["description"],
+                    date=event_date,
+                    department=event_data["department"],
+                    audience=event_data["audience"]
+                )
+                db.add(new_event)
+                new_events_count += 1
         await db.commit()
         
         return StandardResponse(
@@ -148,9 +155,6 @@ async def extract_calendar(
     finally:
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
-
-
-logger = logging.getLogger(__name__)
 
 
 @router.post("/send-log", response_model=SendLogResponse, status_code=status.HTTP_201_CREATED)

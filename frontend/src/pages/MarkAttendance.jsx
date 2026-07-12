@@ -10,6 +10,7 @@ const MarkAttendance = () => {
   const [absentees, setAbsentees] = useState([]);
   const [currentRoll, setCurrentRoll] = useState('');
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [timeSlot, setTimeSlot] = useState('');
   const [sessionType, setSessionType] = useState('Theory');
   
   const [selectedClass, setSelectedClass] = useState('');
@@ -70,6 +71,20 @@ const MarkAttendance = () => {
     if (cls) setTotalStudents(cls.total_students);
   };
 
+  const handleTimeSlotChange = (e) => {
+    // Remove all non-digits
+    let val = e.target.value.replace(/[^0-9]/g, '');
+    if (val.length > 8) val = val.substring(0, 8);
+    
+    let formatted = '';
+    if (val.length > 0) formatted += val.substring(0, 2);
+    if (val.length > 2) formatted += ':' + val.substring(2, 4);
+    if (val.length > 4) formatted += ' - ' + val.substring(4, 6);
+    if (val.length > 6) formatted += ':' + val.substring(6, 8);
+    
+    setTimeSlot(formatted);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError('');
@@ -87,6 +102,7 @@ const MarkAttendance = () => {
           class_id: selectedClass,
           subject_id: selectedSubject,
           lecture_date: date,
+          time_slot: timeSlot,
           topic_covered: topic,
           total_students_enrolled: parseInt(totalStudents),
           students_present_count: parseInt(studentsPresent),
@@ -102,7 +118,8 @@ const MarkAttendance = () => {
         setStudentsPresent('');
         setAbsentees([]);
         setCurrentRoll('');
-        setDate('');
+        setDate(new Date().toISOString().split('T')[0]);
+        setTimeSlot('');
         setSelectedClass('');
         setSelectedSubject('');
       } else {
@@ -203,24 +220,36 @@ const MarkAttendance = () => {
                 </div>
               </div>
               <div className="form-group half">
+                <label>Time Slot</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  placeholder="10:00 - 11:00" 
+                  value={timeSlot} 
+                  onChange={handleTimeSlotChange} 
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group half">
                 <label>Lecture Type <span className="text-danger">*</span></label>
                 <select className="form-select" value={sessionType} onChange={(e) => setSessionType(e.target.value)} required>
                   <option value="Theory">Theory</option>
                   <option value="Practical">Practical</option>
                 </select>
               </div>
-            </div>
-
-            <div className="form-group">
-              <label>Lecture Topic / Module <span className="text-danger">*</span></label>
-              <input 
-                type="text" 
-                className="form-input" 
-                placeholder="Enter the specific topic or module covered during the lecture" 
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                required 
-              />
+              <div className="form-group half">
+                <label>Lecture Topic / Module <span className="text-danger">*</span></label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  placeholder="Enter specific topic" 
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  required 
+                />
+              </div>
             </div>
 
             <div className="form-row">
@@ -298,15 +327,27 @@ const MarkAttendance = () => {
           <div className="steps-list">
             <div className="step-item">
               <div className="step-number">1</div>
-              <p>Select the class and subject you are conducting the lecture for. These are mapped dynamically to your profile.</p>
+              <p><strong>Class & Subject Allocation:</strong> Carefully select the specific class division and the corresponding subject you conducted. Note that the dropdowns will only display subjects that have been officially mapped to your faculty profile by the Head of Department. If a subject is missing, please contact the administration.</p>
             </div>
             <div className="step-item">
               <div className="step-number">2</div>
-              <p>Enter the lecture date, topic, and the count of students present.</p>
+              <p><strong>Date & Time Slot Accuracy:</strong> Ensure the lecture date matches the actual day the session was conducted (it defaults to today). Input the exact time slot (e.g., 10:30 - 11:30) using the 24-hour format; the field will automatically space it for you. This precision is required for timetable audits.</p>
             </div>
             <div className="step-item">
               <div className="step-number">3</div>
-              <p><strong>Submit</strong> — the attendance percentage updates immediately in the tracking dashboard.</p>
+              <p><strong>Lecture Details:</strong> Specify whether this was a Theory or Practical session, and provide a brief but descriptive title for the module or topic covered during the class.</p>
+            </div>
+            <div className="step-item">
+              <div className="step-number">4</div>
+              <p><strong>Student Count:</strong> Input the total number of students enrolled in the selected class. This number forms the baseline for calculating the overall attendance percentage.</p>
+            </div>
+            <div className="step-item">
+              <div className="step-number">5</div>
+              <p><strong>Record Absentees:</strong> Type the precise roll numbers of any absent students and press comma (,) or Enter to add them as tags. The system will automatically subtract this from the total enrolled to calculate the 'Present' count.</p>
+            </div>
+            <div className="step-item">
+              <div className="step-number">6</div>
+              <p><strong>Submit:</strong> Click submit to finalize the record. This action instantly updates departmental attendance metrics, tracking dashboards, and triggers real-time updates to any relevant defaulter lists across the platform.</p>
             </div>
           </div>
 

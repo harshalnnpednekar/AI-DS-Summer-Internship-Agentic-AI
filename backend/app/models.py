@@ -127,6 +127,7 @@ class LectureAttendance(Base):
     class_id = Column(Uuid, ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
     subject_id = Column(Uuid, ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
     lecture_date = Column(Date, nullable=False)
+    time_slot = Column(String(50), nullable=True)
     topic_covered = Column(String(200), nullable=False)
     total_students_enrolled = Column(Integer, nullable=False)
     students_present_count = Column(Integer, nullable=False)

@@ -1,3 +1,7 @@
+from app.models import DefaulterList
+from app.schemas import DefaulterListResponse
+from app.models import StudentProfile
+from requests import Session
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -62,6 +66,7 @@ async def submit_attendance(
         class_id=attendance.class_id,
         subject_id=attendance.subject_id,
         lecture_date=attendance.lecture_date,
+        time_slot=attendance.time_slot,
         topic_covered=attendance.topic_covered,
         total_students_enrolled=attendance.total_students_enrolled,
         students_present_count=attendance.students_present_count,
@@ -162,7 +167,7 @@ async def get_attendance_stats(
         if hod_dept:
             query = query.where(Class.department_id == hod_dept)
         # No filter → HOD sees all recent lectures
-        query = query.order_by(LectureAttendance.created_at.desc()).limit(5)
+        query = query.order_by(LectureAttendance.created_at.desc())
         recent_result = await db.execute(query)
     else:
         recent_result = await db.execute(
@@ -171,7 +176,6 @@ async def get_attendance_stats(
             .join(Subject, LectureAttendance.subject_id == Subject.id)
             .where(LectureAttendance.faculty_id == current_user.id)
             .order_by(LectureAttendance.created_at.desc())
-            .limit(5)
         )
         
     recent_list = recent_result.all()
@@ -183,6 +187,7 @@ async def get_attendance_stats(
             "subject_name": s_name,
             "session_type": l.session_type,
             "date": l.lecture_date.strftime("%b %d, %Y"),
+            "time_slot": l.time_slot,
             "topic": l.topic_covered,
             "present": l.students_present_count,
             "total": l.total_students_enrolled,
@@ -202,10 +207,6 @@ async def get_attendance_stats(
     )
 
 
-
-    prefix="/api/defaulter",
-    tags=["OmniSync Defaulters"],
-)
 
 allow_hod = RoleChecker([RoleEnum.HOD])
 

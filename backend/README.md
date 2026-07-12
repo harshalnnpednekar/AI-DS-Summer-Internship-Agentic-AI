@@ -1,572 +1,232 @@
-# EduAgent — College Event Notification System (Backend)
+# OmniSync Backend Service
 
-> A FastAPI-based REST API backend for managing college events, student records, and email notification delivery logs. Built as part of a summer internship project, this system is designed to be integrated with an automated scheduler and email notification agent.
+This directory contains the robust, asynchronous REST API that powers the OmniSync platform. Built on top of **FastAPI** and **PostgreSQL**, this backend is designed for high concurrency, strict data validation, and seamless background task execution.
 
----
+## 🌟 Architectural Highlights
 
-## Table of Contents
+- **FastAPI Framework**: Chosen for its exceptional speed, built-in validation via Pydantic, and native support for asynchronous programming (ASGI).
+- **SQLAlchemy 2.0 (Async)**: Utilizes asynchronous database sessions (`AsyncSession`) to ensure non-blocking database I/O, drastically improving throughput under heavy load.
+- **Alembic Migrations**: Maintains a strict, version-controlled history of database schema changes, ensuring reproducible deployments across environments.
+- **APScheduler**: Integrates the Advanced Python Scheduler to execute recurring background tasks—specifically, monitoring upcoming academic deadlines and dispatching email notifications.
+- **Modular Routing**: API endpoints are logically segmented into routers (`users.py`, `events.py`, `attendance.py`, `auth.py`), adhering to Separation of Concerns (SoC).
 
-- [Project Overview](#project-overview)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Prerequisites](#prerequisites)
-- [Installation & Setup](#installation--setup)
-- [Docker Setup for PostgreSQL](#docker-setup-for-postgresql)
-- [Environment Variables](#environment-variables)
-- [Database Migrations (Alembic)](#database-migrations-alembic)
-- [Seeding Sample Data](#seeding-sample-data)
-- [Running the Server](#running-the-server)
-- [Swagger / API Documentation](#swagger--api-documentation)
-- [API Endpoints](#api-endpoints)
-- [Example curl Commands](#example-curl-commands)
-- [Testing with Postman](#testing-with-postman)
-- [Integration Notes](#integration-notes)
-- [Future Improvements](#future-improvements)
+## 🗂️ Directory Structure
 
----
-
-## Project Overview
-
-The **EduAgent Backend** is the data and API layer for a college event notification system, now heavily expanded with the **OmniSync Attendance Tracking System**. It exposes REST endpoints to:
-
-- Manage upcoming college events (exams, deadlines, guest lectures, etc.)
-- Store student records by department
-- Log the status of email notifications sent to students
-- **OmniSync:** Full auth system (HOD, Faculty, Student roles)
-- **OmniSync:** Submit and track daily lecture attendance, with class-wise tracking and aggregation
-
-This backend is designed to be consumed by an **AI scheduling agent** (EduAgent) as well as the **OmniSync React Frontend**.
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| API Framework | [FastAPI](https://fastapi.tiangolo.com/) `>= 0.111.0` |
-| ASGI Server | [Uvicorn](https://www.uvicorn.org/) `>= 0.29.0` |
-| ORM | [SQLAlchemy 2.x](https://docs.sqlalchemy.org/) (async) `>= 2.0.35` |
-| Database | [PostgreSQL](https://www.postgresql.org/) (via Docker) |
-| DB Driver | [Psycopg v3](https://www.psycopg.org/psycopg3/) (binary) `>= 3.x` |
-| Migrations | [Alembic](https://alembic.sqlalchemy.org/) `>= 1.13.2` |
-| Validation | [Pydantic v2](https://docs.pydantic.dev/latest/) `>= 2.7.1` |
-| Config | [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) `>= 2.2.1` |
-| Data Seeding | Custom async seed script |
-| Language | Python 3.11+ |
-
----
-
-## Project Structure
-
-```
+```text
 backend/
-├── .env                        # Local environment variables (not committed)
-├── .env.example                # Template for environment variables
-├── alembic.ini                 # Alembic configuration
-├── requirements.txt            # Python dependencies
-│
-├── alembic/
-│   ├── env.py                  # Alembic migration environment (imports models)
-│   ├── script.py.mako          # Migration file template
-│   └── versions/               # Auto-generated migration files
-│       └── xxxxxx_initial_tables.py
-│
-└── app/
-    ├── config.py               # Pydantic settings (reads from .env)
-    ├── database.py             # Async SQLAlchemy engine, session, Base
-    ├── models.py               # SQLAlchemy ORM models (Event, Student, SendLog)
-    ├── schemas.py              # Pydantic request/response schemas
-    ├── crud.py                 # Async CRUD operations
-    ├── seed_attendance.py      # Script to populate initial test data
-    ├── main.py                 # FastAPI app entry point, middleware, routers
-    │
-    └── routers/
-        ├── __init__.py
-        ├── events.py           # GET /events/upcoming, POST /events
-        ├── students.py         # GET /students
-        └── logs.py             # POST /send-log
+├── alembic/                # Database migration scripts and configuration
+├── app/                    # Core application logic
+│   ├── models.py           # SQLAlchemy ORM models (Database schema definitions)
+│   ├── schemas.py          # Pydantic models (Data validation & serialization)
+│   ├── crud.py             # Create, Read, Update, Delete (CRUD) operations
+│   ├── database.py         # Database connection pooling and session management
+│   ├── dependencies.py     # FastAPI dependencies (e.g., Auth, DB Session)
+│   ├── main.py             # FastAPI application factory and lifecycle events
+│   ├── routers/            # API Route definitions
+│   └── services/           # Business logic and external integrations
+│       ├── calendar_extractor/ # PDF parsing algorithms and utilities
+│       ├── email/          # SMTP email dispatch services
+│       └── scheduler/      # Background task orchestration
+├── run_backend.py          # Uvicorn server entry point
+├── alembic.ini             # Alembic configuration file
+└── requirements.txt        # Python dependency manifest
 ```
 
----
+## 🛠️ Core Services
 
-## Prerequisites
+### 1. Calendar Extractor (`app/services/calendar_extractor/`)
+A specialized module tasked with parsing uploaded PDF academic calendars. 
+- **`extractor.py`**: The main orchestrator that coordinates text extraction and validation.
+- **`parser.py`**: Contains complex regular expressions and heuristic algorithms to isolate dates, event titles, and intended audiences from unstructured text.
+- **`validator.py`**: Enforces strict Pydantic models (`AcademicEvent`) on the extracted data to ensure structural integrity before database insertion.
 
-Before you begin, ensure you have the following installed:
+### 2. Automated Scheduler (`app/services/scheduler/`)
+Operates independently of the HTTP request-response cycle to execute time-sensitive tasks.
+- **`agent.py`**: Defines the `notification_workflow`, which queries the database for upcoming events (e.g., within 7 days) and prepares customized email templates.
+- **`scheduler.py`**: Configures the `AsyncIOScheduler`, registering jobs to run at defined intervals (e.g., a CRON job executing every 5 minutes).
 
-- **Python 3.11+** — [Download](https://www.python.org/downloads/)
-- **Docker Desktop** — [Download](https://www.docker.com/products/docker-desktop/) (for PostgreSQL)
-- **pip** — comes bundled with Python
+### 3. Authentication & Security
+- Leverages OAuth2 Password Bearer flow.
+- Passwords are hashed via the `passlib` library (bcrypt).
+- JWTs are generated and validated using `python-jose`, ensuring secure, stateless API communication.
 
----
+## 🗄️ Database Schema Reference
 
-## Installation & Setup
+OmniSync utilizes a highly normalized PostgreSQL relational database. Below are the core tables and their structures as defined by our SQLAlchemy models.
 
-### 1. Clone the repository
+### `users`
+Core authentication table for all users (HOD, Faculty, Students).
+| Column Name | Data Type | Constraints | Description |
+|---|---|---|---|
+| `id` | UUID | Primary Key | Unique user identifier |
+| `email` | String(255) | Unique, Not Null | User's email address |
+| `password_hash` | String(255) | Not Null | Bcrypt hashed password |
+| `first_name` | String(100) | Not Null | User's first name |
+| `last_name` | String(100) | Not Null | User's last name |
+| `role` | Enum | Not Null | `HOD`, `FACULTY`, or `STUDENT` |
+| `created_at` | DateTime | Not Null | Timestamp of creation |
+| `updated_at` | DateTime | Not Null | Timestamp of last update |
 
+### `faculty_profiles`
+Extended profile information for Faculty members.
+| Column Name | Data Type | Constraints | Description |
+|---|---|---|---|
+| `id` | UUID | Primary Key | Profile identifier |
+| `user_id` | UUID | Foreign Key (`users.id`), Unique | Link to core user account |
+| `department` | String(100) | Not Null | e.g., "AI & DS" |
+| `designation` | String(100) | Not Null | e.g., "Assistant Professor" |
+| `assigned_classes` | String(100) | Nullable | Classes assigned (e.g., "SE-A") |
+
+### `student_profiles`
+Extended profile information for Students.
+| Column Name | Data Type | Constraints | Description |
+|---|---|---|---|
+| `id` | UUID | Primary Key | Profile identifier |
+| `user_id` | UUID | Foreign Key (`users.id`), Unique | Link to core user account |
+| `roll_number` | String(50) | Unique, Not Null | Unique student roll number |
+| `department` | String(100) | Not Null | e.g., "AI & DS" |
+| `current_semester` | String(20) | Not Null | e.g., "Semester 5" |
+| `division` | String(50) | Not Null | e.g., "TE-A" |
+
+### `events`
+Parsed events extracted from the Academic Calendar.
+| Column Name | Data Type | Constraints | Description |
+|---|---|---|---|
+| `event_id` | UUID | Primary Key | Unique event identifier |
+| `title` | String(200) | Not Null | Event name/title |
+| `description` | String(2000)| Nullable | Detailed event description |
+| `event_date` | Date | Not Null | Date of the event |
+| `department` | String(100) | Not Null | Target department |
+| `audience` | String(50) | Not Null | e.g., "SE", "TE", "BE", or "ALL" |
+
+### `send_logs`
+Audit trail for background email dispatching.
+| Column Name | Data Type | Constraints | Description |
+|---|---|---|---|
+| `log_id` | UUID | Primary Key | Log identifier |
+| `event_id` | UUID | Foreign Key (`events.event_id`) | Associated event |
+| `student_email` | String(255) | Not Null | Recipient email address |
+| `status` | String(50) | Not Null | e.g., "SENT", "FAILED" |
+| `timestamp` | DateTime | Not Null | Dispatch timestamp |
+
+### `attendances`
+Raw parsed attendance records mapped to students.
+| Column Name | Data Type | Constraints | Description |
+|---|---|---|---|
+| `id` | UUID | Primary Key | Attendance record identifier |
+| `date` | Date | Not Null | Date of attendance |
+| `subject` | String(100) | Not Null | Subject name |
+| `faculty_id` | UUID | Foreign Key (`users.id`) | Faculty who submitted |
+| `division` | String(50) | Not Null | Class division |
+| `status` | JSONB | Not Null | JSON Map: `student_id` -> "Present"/"Absent" |
+
+### `defaulter_lists`
+Generated lists of students who fall below the minimum attendance threshold.
+| Column Name | Data Type | Constraints | Description |
+|---|---|---|---|
+| `id` | UUID | Primary Key | List identifier |
+| `generated_by`| UUID | Foreign Key (`users.id`) | Faculty/HOD who generated |
+| `division` | String(50) | Not Null | Class division |
+| `month` | String(20) | Not Null | Month of reference |
+| `generated_at`| DateTime | Not Null | Generation timestamp |
+| `student_ids` | JSONB | Not Null | Array of defaulter UUIDs |
+| `broadcast_status`| String(20) | Not Null, Default: "PENDING" | Status of warning emails |
+
+### `classes` & `subjects`
+Normalization tables for academic structures.
+- **`classes`**: `id` (UUID), `name` (String 50), `department_id` (String 100), `total_students` (Integer)
+- **`subjects`**: `id` (UUID), `code` (String 50), `name` (String 100), `department_id` (String 100)
+
+### `faculty_subject_mappings`
+Maps which faculty teaches which subject in which class.
+| Column Name | Data Type | Constraints | Description |
+|---|---|---|---|
+| `id` | UUID | Primary Key | Mapping identifier |
+| `faculty_id` | UUID | Foreign Key (`users.id`) | Assigned Faculty |
+| `class_id` | UUID | Foreign Key (`classes.id`) | Target Class |
+| `subject_id` | UUID | Foreign Key (`subjects.id`)| Assigned Subject |
+
+### `lecture_attendances`
+Tracks per-lecture stats, topics covered, and specific absentees.
+| Column Name | Data Type | Constraints | Description |
+|---|---|---|---|
+| `id` | UUID | Primary Key | Session identifier |
+| `faculty_id` | UUID | Foreign Key (`users.id`) | Executing Faculty |
+| `class_id` | UUID | Foreign Key (`classes.id`) | Executing Class |
+| `subject_id` | UUID | Foreign Key (`subjects.id`)| Topic Subject |
+| `lecture_date`| Date | Not Null | Date of session |
+| `topic_covered`| String(200) | Not Null | Lesson summary |
+| `total_students_enrolled` | Integer | Not Null | Class capacity |
+| `students_present_count` | Integer | Not Null | Number of attendees |
+| `absentee_roll_numbers` | JSONB | Nullable | Array of absent roll numbers |
+| `session_type`| String(20) | Not Null, Default: "Lecture"| e.g., "Lecture", "Practical" |
+| `created_at` | DateTime | Not Null | Entry creation timestamp |
+
+## 🌐 API Endpoints Reference
+
+The backend exposes a comprehensive set of RESTful endpoints prefixed with `/api`. Most endpoints require a valid Bearer JWT token in the `Authorization` header.
+
+### Authentication (`/api/auth`)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `POST` | `/login` | Authenticates user and returns JWT access token | No |
+| `POST` | `/signup` | Registers a new HOD, Faculty, or Student | No |
+| `POST` | `/logout` | Invalidates the current session | Yes |
+| `GET`  | `/me` | Returns the profile of the currently authenticated user | Yes |
+| `POST` | `/repair-profile`| Utility endpoint to fix corrupted user profiles | Yes |
+
+### Events & Calendar (`/api/events`)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET`  | `/upcoming` | Retrieves events happening within a specified timeframe (e.g., next 7 days) | No |
+| `GET`  | `/events` | Retrieves a paginated list of all events | No |
+| `POST` | `/` | Manually creates a new event | Yes (HOD/Faculty) |
+| `POST` | `/extract` | Parses an uploaded Academic Calendar PDF and extracts events | Yes (HOD/Faculty) |
+| `POST` | `/send-log` | Records an audit log when an automated email is dispatched | System/Internal |
+
+### Attendance (`/api/attendance`)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET`  | `/form-meta` | Fetches metadata (subjects, classes) for the attendance upload form | Yes (Faculty) |
+| `POST` | `/submit` | Accepts CSV/Excel files to bulk upload attendance records | Yes (Faculty) |
+| `GET`  | `/stats` | Retrieves aggregated attendance statistics for dashboard charts | Yes |
+| `POST` | `/generate` | Generates a defaulter list based on a minimum threshold (e.g., 75%) | Yes (HOD/Faculty) |
+| `POST` | `/broadcast/{list_id}`| Dispatches warning emails to all students on a specific defaulter list | Yes (HOD/Faculty) |
+
+### Users & Profiles (`/api/users`)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET`  | `/` | Retrieves a list of users (primarily used for fetching students) | Yes (Faculty) |
+| `GET`  | `/department/{department}` | Retrieves all users belonging to a specific department | Yes (HOD) |
+
+## 🚀 Getting Started
+
+### 1. Environment Preparation
+Ensure Python 3.10+ is installed. Create an isolated virtual environment:
 ```bash
-git clone <repository-url>
-cd backend
-```
-
-### 2. Create and activate a virtual environment
-
-```bash
-# Windows
 python -m venv venv
-.\venv\Scripts\activate
-
-# macOS / Linux
-python3 -m venv venv
-source venv/bin/activate
-```
-
-### 3. Install dependencies
-
-```bash
+source venv/bin/activate  # Windows: .\venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 4. Setup Database and Migrations
+### 2. Database Initialization
+Ensure PostgreSQL is running and a database named `event_notification_db` exists. The connection string is managed in `app/database.py`.
 
-Ensure your PostgreSQL instance is running. Then run:
-```bash
-python -m alembic upgrade head
-```
-
----
-
-## Docker Setup for PostgreSQL
-
-This project uses a PostgreSQL database running in Docker. Run the following command to start a container:
-
-```bash
-docker run -d \
-  --name eduagent-pg \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=event_notification_db \
-  -p 5432:5432 \
-  postgres:15
-```
-
-To verify the container is running:
-
-```bash
-docker ps
-```
-
-To connect to the database directly:
-
-```bash
-docker exec -it eduagent-pg psql -U postgres -d event_notification_db
-```
-
----
-
-## Environment Variables
-
-Copy `.env.example` to `.env` and fill in your values:
-
-```bash
-cp .env.example .env
-```
-
-### `.env.example`
-
-```env
-DATABASE_URL=
-APP_NAME=
-DEBUG=
-```
-
-### `.env` (example values)
-
-```env
-DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/event_notification_db
-APP_NAME=EduAgent
-DEBUG=True
-```
-
-> **Note:** The `DATABASE_URL` must use the `postgresql+psycopg://` scheme (Psycopg v3 async driver). Do not use `postgresql://` directly.
-
-All settings are loaded via `pydantic-settings` in [`app/config.py`](app/config.py) and are available throughout the app via:
-
-```python
-from app.config import settings
-settings.DATABASE_URL
-```
-
----
-
-## Database Migrations (Alembic)
-
-Alembic handles schema migrations. The `alembic/env.py` is configured to auto-detect your models.
-
-### Generate a new migration
-
-Run this from the `backend/` directory (with your virtual environment activated):
-
-```bash
-alembic revision --autogenerate -m "initial tables"
-```
-
-### Apply migrations to the database
-
+Run the Alembic migrations to construct the schema:
 ```bash
 alembic upgrade head
 ```
 
-### Verify tables were created
-
-```bash
-docker exec -it eduagent-pg psql -U postgres -d event_notification_db -c "\dt"
-```
-
-Expected output:
-
-```
-          List of relations
- Schema |    Name    | Type  |  Owner
---------+------------+-------+----------
- public | events     | table | postgres
- public | send_logs  | table | postgres
- public | students   | table | postgres
-```
-
-### Rollback last migration
-
-```bash
-alembic downgrade -1
-```
-
----
-
-## Seeding Sample Data
-
-The seed script inserts test students and upcoming events into the database. It checks for duplicates before inserting.
-
-```bash
-python seed_attendance.py
-```
-
-### What gets seeded
-
-The script initializes:
-- **Admin, HOD, and Faculty** user accounts
-- **Classes** (e.g., SE-A, TE-B) mapped to the AIDS department
-- **Subjects** (e.g., Data Visualization, Computer Vision)
-- **Faculty Profiles** linking users to specific classes and subjects
-- **Mock Lecture Attendance** for both Theory and Practical sessions across different dates
-
-> **Windows Note:** The seed script uses `SelectorEventLoop` for Windows compatibility with Psycopg v3 (avoids the ProactorEventLoop error).
-
----
-
-## Running the Server
-
-Start the development server using the provided run script (handles Windows compatibility automatically):
-
+### 3. Running the Server
+Launch the development server using the provided runner script:
 ```bash
 python run_backend.py
 ```
+This script invokes `uvicorn` with hot-reloading enabled. The API will be accessible at `http://127.0.0.1:8000`.
 
-The server will start at: **http://127.0.0.1:8000**
+### 4. Interactive API Documentation
+FastAPI automatically generates interactive documentation for all endpoints. Once the server is running, visit:
+- **Swagger UI**: `http://127.0.0.1:8000/docs`
+- **ReDoc**: `http://127.0.0.1:8000/redoc`
 
----
-
-## Swagger / API Documentation
-
-FastAPI automatically generates interactive API documentation.
-
-| Documentation | URL |
-|---|---|
-| Swagger UI (interactive) | http://127.0.0.1:8000/docs |
-| ReDoc (read-only) | http://127.0.0.1:8000/redoc |
-| OpenAPI JSON schema | http://127.0.0.1:8000/openapi.json |
-
----
-
-## API Endpoints
-
-### `GET /` — Health Check
-
-Returns the API status.
-
-**Response `200 OK`:**
-```json
-{
-  "status": "ok",
-  "message": "EduAgent API is running"
-}
-```
-
----
-
-### `GET /events/upcoming` — Upcoming Events
-
-Returns events happening within the next N days.
-
-**Query Parameters:**
-
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `days` | integer | `2` | Number of days ahead to search |
-
-**Response `200 OK`:**
-```json
-[
-  {
-    "event_id": "a1b2c3d4-...",
-    "title": "Unit Test 1",
-    "description": "First unit test covering units 1 and 2",
-    "event_date": "2026-07-06",
-    "department": "AIDS",
-    "audience": "ALL"
-  }
-]
-```
-
----
-
-### `POST /events` — Create Event(s)
-
-Creates a single event or a bulk list of events.
-
-**Request Body (single event):**
-```json
-{
-  "title": "Mid Semester Exam",
-  "description": "Covers topics from Unit 1 to Unit 3",
-  "event_date": "2026-07-10",
-  "department": "AIDS",
-  "audience": "ALL"
-}
-```
-
-**Request Body (bulk list):**
-```json
-[
-  {
-    "title": "Event A",
-    "description": "Description A",
-    "event_date": "2026-07-10",
-    "department": "AIDS",
-    "audience": "ALL"
-  },
-  {
-    "title": "Event B",
-    "description": "Description B",
-    "event_date": "2026-07-11",
-    "department": "AIDS",
-    "audience": "students"
-  }
-]
-```
-
-**Valid `audience` values:** `students`, `faculty`, `staff`, `public`, `ALL`
-
-**Response `201 Created`:**
-```json
-{
-  "event_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "title": "Mid Semester Exam",
-  "description": "Covers topics from Unit 1 to Unit 3",
-  "event_date": "2026-07-10",
-  "department": "AIDS",
-  "audience": "ALL"
-}
-```
-
----
-
-### `GET /students` — List Students
-
-Returns all students, optionally filtered by department.
-
-**Query Parameters:**
-
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `department` | string | `ALL` | Department name or `ALL` for all departments |
-
-**Response `200 OK`:**
-```json
-[
-  {
-    "student_id": "b2c3d4e5-...",
-    "name": "Member1",
-    "email": "puneetdhongade26@gmail.com",
-    "department": "AIDS"
-  },
-  {
-    "student_id": "c3d4e5f6-...",
-    "name": "Member2",
-    "email": "puneetsdhongade2006@gmail.com",
-    "department": "AIDS"
-  }
-]
-```
-
----
-
-### `POST /send-log` — Log Email Delivery
-
-Stores an email notification delivery log for a specific event and student.
-
-**Request Body:**
-```json
-{
-  "event_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "student_email": "puneetdhongade26@gmail.com",
-  "status": "sent"
-}
-```
-
-**Valid `status` values:** `sent`, `failed`
-
-**Response `201 Created`:**
-```json
-{
-  "log_id": "d4e5f6a7-...",
-  "event_id": "a1b2c3d4-...",
-  "student_email": "puneetdhongade26@gmail.com",
-  "status": "sent",
-  "timestamp": "2026-07-04T14:00:00.000000+05:30"
-}
-```
-
----
-
-## Example curl Commands
-
-### Health Check
-
-```bash
-curl http://127.0.0.1:8000/
-```
-
-### Get upcoming events (next 2 days)
-
-```bash
-curl "http://127.0.0.1:8000/events/upcoming?days=2"
-```
-
-### Create a single event
-
-```bash
-curl -X POST http://127.0.0.1:8000/events \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Mid Semester Exam",
-    "description": "Covers Unit 1 to 3",
-    "event_date": "2026-07-10",
-    "department": "AIDS",
-    "audience": "ALL"
-  }'
-```
-
-### Get all students in AIDS department
-
-```bash
-curl "http://127.0.0.1:8000/students?department=AIDS"
-```
-
-### Log a sent email notification
-
-```bash
-curl -X POST http://127.0.0.1:8000/send-log \
-  -H "Content-Type: application/json" \
-  -d '{
-    "event_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "student_email": "puneetdhongade26@gmail.com",
-    "status": "sent"
-  }'
-```
-
----
-
-## Testing with Postman
-
-### Import and setup
-
-1. Open [Postman](https://www.postman.com/).
-2. Click **Import** → **Link** and enter: `http://127.0.0.1:8000/openapi.json`
-3. Postman will automatically generate a collection from the OpenAPI schema.
-
-### Recommended test order
-
-1. `GET /` — verify server is running
-2. `POST /events` — create a test event, copy the `event_id` from the response
-3. `GET /events/upcoming?days=7` — verify the created event appears
-4. `GET /students?department=AIDS` — verify seed students are present
-5. `POST /send-log` — use the `event_id` from step 2
-
-### Setting a base URL variable
-
-In Postman, create an **environment variable**:
-
-| Variable | Value |
-|---|---|
-| `BASE_URL` | `http://127.0.0.1:8000` |
-
-Then use `{{BASE_URL}}/events/upcoming` in your requests.
-
----
-
-## Integration Notes
-
-### Scheduler Integration
-
-The EduAgent scheduler (a separate service/script) should:
-
-1. Call `GET /events/upcoming?days=N` at regular intervals (e.g., daily at 8:00 AM).
-2. For each event returned, call `GET /students?department=<event.department>` to get the target audience.
-3. Send notification emails to each student.
-4. After each email attempt, call `POST /send-log` to record the delivery status (`sent` or `failed`).
-
-### Email Service Integration
-
-The backend does **not** send emails directly. It acts purely as a data store. Your email agent/service should:
-
-- Read recipients from `GET /students`
-- Read event details from `GET /events/upcoming`
-- Write delivery results to `POST /send-log`
-
-This separation allows you to swap or upgrade the email service without modifying the backend.
-
-### CORS
-
-The backend allows all origins (`*`) by default. For production, restrict this to your frontend/agent domain in `app/config.py`:
-
-```python
-ALLOWED_ORIGINS: list[str] = ["https://your-frontend.com"]
-```
-
----
-
-## Future Improvements
-
-| Area | Improvement |
-|---|---|
-| Authentication | Add JWT-based auth for admin endpoints |
-| Event Management | Add `GET /events/{id}`, `PUT /events/{id}`, `DELETE /events/{id}` |
-| Student Management | Add `POST /students`, `PUT /students/{id}`, `DELETE /students/{id}` |
-| Filtering | Add date range filters to `GET /events/upcoming` |
-| Pagination | Add `limit` and `offset` query parameters for large datasets |
-| Notification Status | Add `GET /send-log?event_id=...` to query delivery history |
-| Background Tasks | Use FastAPI `BackgroundTasks` or Celery for async email dispatch |
-| Production Config | Add `.env.production` with proper secret management |
-| Testing | Add `pytest` + `httpx` integration tests for all endpoints |
-| Logging | Persist structured logs (JSON) to file or external log service |
-| Docker Compose | Add `docker-compose.yml` to run both API and DB together |
-| Deployment | Add `Dockerfile` for containerized API deployment |
-
----
-
-## License
-
-This project is developed as part of a college summer internship program.
-
----
-
-> Made with ❤️ for EduAgent — College Event Notification System
+Use these interfaces to explore the API schema, test endpoints, and verify authentication flows directly from your browser.

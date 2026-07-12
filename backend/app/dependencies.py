@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from .database import get_db
 from .config import settings
-from .schemas_omnisync import TokenData
+from .schemas import TokenData
 from .models import User, RoleEnum
 import uuid
 
