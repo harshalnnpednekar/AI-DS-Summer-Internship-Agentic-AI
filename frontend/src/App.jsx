@@ -10,6 +10,7 @@ import BroadcastLogs from './pages/BroadcastLogs';
 import DefaulterManagement from './pages/DefaulterManagement';
 import Reports from './pages/Reports';
 import Configuration from './pages/Configuration';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/defaulter-management" element={<DefaulterManagement />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/configuration" element={<Configuration />} />
+          <Route path="/profile" element={<Profile />} />
         </Route>
       </Routes>
     </Router>

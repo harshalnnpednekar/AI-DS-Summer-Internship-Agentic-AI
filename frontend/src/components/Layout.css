@@ -145,6 +145,14 @@
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1rem;
+  padding: 8px 10px;
+  border-radius: 10px;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.user-profile:hover {
+  background: #f1f5f9;
+  transform: translateX(2px);
 }
 
 .user-avatar {

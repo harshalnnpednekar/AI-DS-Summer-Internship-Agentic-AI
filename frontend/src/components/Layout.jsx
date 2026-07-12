@@ -107,13 +107,15 @@ const Layout = () => {
               <Users size={20} />
               <span>Attendance Tracking</span>
             </NavLink>
+            {(userRole === 'HOD' || userRole === 'FACULTY') && (
+              <NavLink to="/defaulter-management" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+                <AlertTriangle size={20} />
+                <span>Defaulter Management</span>
+                <span className="nav-badge">8</span>
+              </NavLink>
+            )}
             {userRole === 'HOD' && (
               <>
-                <NavLink to="/defaulter-management" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
-                  <AlertTriangle size={20} />
-                  <span>Defaulter Management</span>
-                  <span className="nav-badge">8</span>
-                </NavLink>
                 <NavLink to="/reports" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
                   <FileText size={20} />
                   <span>Reports & Exports</span>
@@ -132,7 +134,12 @@ const Layout = () => {
         </nav>
 
         <div className="sidebar-footer">
-          <div className="user-profile">
+          <div 
+            className="user-profile" 
+            onClick={() => navigate('/profile')}
+            style={{ cursor: 'pointer' }}
+            title="View your profile"
+          >
             <div className="user-avatar mv-avatar">{userInitials}</div>
             <div className="user-info">
                <h4>{userName}</h4>
@@ -157,7 +164,6 @@ const Layout = () => {
             <div className="agent-status">
               <Cpu size={18} />
               <span>OmniSync</span>
-              <span className="badge badge-success" style={{ marginLeft: '8px', fontSize: '10px' }}>LIVE</span>
             </div>
           </div>
           <div className="header-right">

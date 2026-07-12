@@ -113,6 +113,9 @@ class UserSignup(UserBase):
     roll_number: Optional[str] = None
     current_semester: Optional[str] = None
     division: Optional[str] = None
+    phone: Optional[str] = None
+    bio: Optional[str] = None
+    joining_year: Optional[str] = None
 
 class UserResponse(UserBase):
     id: UUID
@@ -120,6 +123,15 @@ class UserResponse(UserBase):
     updated_at: datetime
 
     model_config = {'from_attributes': True}
+
+class ProfileUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    bio: Optional[str] = None
+    designation: Optional[str] = None
+    department: Optional[str] = None
+    assigned_classes: Optional[str] = None
 
 # --- Auth Schemas ---
 
@@ -137,6 +149,9 @@ class FacultyProfileBase(BaseModel):
     department: str
     designation: str
     assigned_classes: Optional[str] = None
+    phone: Optional[str] = None
+    bio: Optional[str] = None
+    joining_year: Optional[str] = None
 
 class FacultyProfileCreate(FacultyProfileBase):
     pass
@@ -154,6 +169,9 @@ class StudentProfileBase(BaseModel):
     department: str
     current_semester: str
     division: str
+    phone: Optional[str] = None
+    bio: Optional[str] = None
+    joining_year: Optional[str] = None
 
 class StudentProfileCreate(StudentProfileBase):
     pass
@@ -163,6 +181,7 @@ class StudentProfileResponse(StudentProfileBase):
     user_id: UUID
 
     model_config = {'from_attributes': True}
+
 
 # --- Attendance Schemas ---
 

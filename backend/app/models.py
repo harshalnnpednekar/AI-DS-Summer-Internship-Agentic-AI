@@ -61,6 +61,9 @@ class FacultyProfile(Base):
     department = Column(String(100), nullable=False)
     designation = Column(String(100), nullable=False)
     assigned_classes = Column(String(100), nullable=True) # E.g., "SE-A"
+    phone = Column(String(20), nullable=True)
+    bio = Column(String(500), nullable=True)
+    joining_year = Column(String(10), nullable=True)
 
 class StudentProfile(Base):
     __tablename__ = "student_profiles"
@@ -71,6 +74,9 @@ class StudentProfile(Base):
     department = Column(String(100), nullable=False)
     current_semester = Column(String(20), nullable=False)
     division = Column(String(50), nullable=False)
+    phone = Column(String(20), nullable=True)
+    bio = Column(String(500), nullable=True)
+    joining_year = Column(String(10), nullable=True)
 
 class Attendance(Base):
     __tablename__ = "attendances"

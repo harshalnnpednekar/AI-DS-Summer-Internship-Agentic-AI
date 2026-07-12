@@ -13,9 +13,18 @@ const Login = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [role, setRole] = useState('STUDENT');
+  // Student fields
   const [rollNumber, setRollNumber] = useState('');
   const [division, setDivision] = useState('SE-A');
-  
+  const [currentSemester, setCurrentSemester] = useState('4');
+  // Faculty/HOD fields
+  const [designation, setDesignation] = useState('');
+  const [assignedClasses, setAssignedClasses] = useState('');
+  const [joiningYear, setJoiningYear] = useState('');
+  // Common extra fields
+  const [phone, setPhone] = useState('');
+  const [bio, setBio] = useState('');
+
   // UI State
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -44,10 +53,17 @@ const Login = () => {
           first_name: firstName,
           last_name: lastName,
           role,
-          department: "AI & DS",
-          division: role === 'STUDENT' ? division : "SE-A",
-          current_semester: "4",
-          roll_number: role === 'STUDENT' ? rollNumber : undefined
+          department: 'AI & DS',
+          phone: phone || undefined,
+          bio: bio || undefined,
+          joining_year: joiningYear || undefined,
+          // Student-specific
+          division: role === 'STUDENT' ? division : undefined,
+          current_semester: role === 'STUDENT' ? currentSemester : undefined,
+          roll_number: role === 'STUDENT' ? rollNumber : undefined,
+          // Faculty/HOD-specific
+          designation: (role === 'FACULTY' || role === 'HOD') ? (designation || (role === 'HOD' ? 'HOD' : 'Assistant Professor')) : undefined,
+          assigned_classes: (role === 'FACULTY' || role === 'HOD') ? (assignedClasses || undefined) : undefined,
         });
         headers['Content-Type'] = 'application/json';
       }
@@ -209,20 +225,78 @@ const Login = () => {
               )}
 
               {!isLoginMode && role === 'STUDENT' && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                  <div className="form-group">
-                    <label>Roll Number</label>
-                    <input type="text" placeholder="e.g. 2021001" value={rollNumber} onChange={(e) => setRollNumber(e.target.value)} required />
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div className="form-group">
+                      <label>Roll Number</label>
+                      <input type="text" placeholder="e.g. 2021001" value={rollNumber} onChange={(e) => setRollNumber(e.target.value)} required />
+                    </div>
+                    <div className="form-group">
+                      <label>Class / Division</label>
+                      <select value={division} onChange={(e) => setDivision(e.target.value)} required style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none' }}>
+                        <option value="SE-A">SE-A (2nd Year)</option>
+                        <option value="TE-A">TE-A (3rd Year)</option>
+                        <option value="BE-A">BE-A (4th Year)</option>
+                      </select>
+                    </div>
                   </div>
                   <div className="form-group">
-                    <label>Class</label>
-                    <select value={division} onChange={(e) => setDivision(e.target.value)} required style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none' }}>
-                      <option value="SE-A">SE-A</option>
-                      <option value="TE-A">TE-A</option>
-                      <option value="BE-A">BE-A</option>
+                    <label>Current Semester</label>
+                    <select value={currentSemester} onChange={(e) => setCurrentSemester(e.target.value)} required style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none' }}>
+                      {['1','2','3','4','5','6','7','8'].map(s => (
+                        <option key={s} value={s}>Semester {s}</option>
+                      ))}
                     </select>
                   </div>
-                </div>
+                </>
+              )}
+
+              {!isLoginMode && (role === 'FACULTY' || role === 'HOD') && (
+                <>
+                  <div className="form-group">
+                    <label>Designation</label>
+                    <input
+                      type="text"
+                      placeholder={role === 'HOD' ? 'Head of Department' : 'e.g. Assistant Professor'}
+                      value={designation}
+                      onChange={(e) => setDesignation(e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Assigned Classes <span style={{color:'#94a3b8', fontSize:'11px'}}>(comma-separated, e.g. SE-A, TE-A)</span></label>
+                    <input
+                      type="text"
+                      placeholder="SE-A, TE-A"
+                      value={assignedClasses}
+                      onChange={(e) => setAssignedClasses(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
+
+              {!isLoginMode && (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div className="form-group">
+                      <label>Phone Number</label>
+                      <input type="tel" placeholder="+91 98765 43210" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                    </div>
+                    <div className="form-group">
+                      <label>Joining Year</label>
+                      <input type="text" placeholder={new Date().getFullYear().toString()} value={joiningYear} onChange={(e) => setJoiningYear(e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Short Bio <span style={{color:'#94a3b8', fontSize:'11px'}}>(optional)</span></label>
+                    <textarea
+                      placeholder="Tell us a bit about yourself…"
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      rows={3}
+                      style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none', resize: 'vertical', fontFamily: 'inherit', fontSize: '14px', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                </>
               )}
 
               <button type="submit" className="login-btn" disabled={loading}>

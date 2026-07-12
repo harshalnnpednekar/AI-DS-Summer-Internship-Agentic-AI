@@ -7,7 +7,7 @@ from ..database import get_db
 from ..models import User, FacultyProfile, StudentProfile, RoleEnum
 from ..auth import verify_password, create_access_token, get_password_hash
 from ..config import settings
-from ..schemas import StandardResponse, Token, UserSignup
+from ..schemas import StandardResponse, Token, UserSignup, ProfileUpdate
 
 router = APIRouter(
     prefix="/api/auth",
@@ -72,7 +72,10 @@ async def signup(user_data: UserSignup, db: AsyncSession = Depends(get_db)):
             user_id=new_user.id,
             department=user_data.department or "General",
             designation=user_data.designation or ("HOD" if user_data.role == RoleEnum.HOD else "Faculty"),
-            assigned_classes=user_data.assigned_classes
+            assigned_classes=user_data.assigned_classes,
+            phone=user_data.phone,
+            bio=user_data.bio,
+            joining_year=user_data.joining_year
         )
         db.add(profile)
     elif user_data.role == RoleEnum.STUDENT:
@@ -81,7 +84,10 @@ async def signup(user_data: UserSignup, db: AsyncSession = Depends(get_db)):
             roll_number=user_data.roll_number or f"TMP-{new_user.id}",
             department=user_data.department or "General",
             current_semester=user_data.current_semester or "1",
-            division=user_data.division or "A"
+            division=user_data.division or "A",
+            phone=user_data.phone,
+            bio=user_data.bio,
+            joining_year=user_data.joining_year
         )
         db.add(profile)
         
@@ -120,13 +126,36 @@ from ..dependencies import get_current_active_user
 
 @router.get("/me", response_model=StandardResponse)
 async def get_me(current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)):
-    profile_dept = None
+    profile_data = {}
     if current_user.role in [RoleEnum.HOD, RoleEnum.FACULTY]:
         profile_result = await db.execute(
             select(FacultyProfile).where(FacultyProfile.user_id == current_user.id)
         )
         profile = profile_result.scalars().first()
-        profile_dept = profile.department if profile else None
+        if profile:
+            profile_data = {
+                "department": profile.department,
+                "designation": profile.designation,
+                "assigned_classes": profile.assigned_classes,
+                "phone": profile.phone,
+                "bio": profile.bio,
+                "joining_year": profile.joining_year,
+            }
+    elif current_user.role == RoleEnum.STUDENT:
+        profile_result = await db.execute(
+            select(StudentProfile).where(StudentProfile.user_id == current_user.id)
+        )
+        profile = profile_result.scalars().first()
+        if profile:
+            profile_data = {
+                "department": profile.department,
+                "roll_number": profile.roll_number,
+                "current_semester": profile.current_semester,
+                "division": profile.division,
+                "phone": profile.phone,
+                "bio": profile.bio,
+                "joining_year": profile.joining_year,
+            }
 
     return StandardResponse(
         success=True,
@@ -136,10 +165,51 @@ async def get_me(current_user: User = Depends(get_current_active_user), db: Asyn
             "first_name": current_user.first_name,
             "last_name": current_user.last_name,
             "role": current_user.role,
-            "department": profile_dept
+            "created_at": current_user.created_at.isoformat(),
+            **profile_data
         },
         error=None
     )
+
+@router.put("/me", response_model=StandardResponse)
+async def update_me(
+    profile_data: ProfileUpdate,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+):
+    # Update basic user fields
+    if profile_data.first_name is not None:
+        current_user.first_name = profile_data.first_name
+    if profile_data.last_name is not None:
+        current_user.last_name = profile_data.last_name
+    
+    # Update role-specific profile fields
+    if current_user.role in [RoleEnum.HOD, RoleEnum.FACULTY]:
+        profile_result = await db.execute(
+            select(FacultyProfile).where(FacultyProfile.user_id == current_user.id)
+        )
+        profile = profile_result.scalars().first()
+        if profile:
+            if profile_data.phone is not None: profile.phone = profile_data.phone
+            if profile_data.bio is not None: profile.bio = profile_data.bio
+            if profile_data.designation is not None: profile.designation = profile_data.designation
+            if profile_data.department is not None: profile.department = profile_data.department
+            if profile_data.assigned_classes is not None: profile.assigned_classes = profile_data.assigned_classes
+    
+    elif current_user.role == RoleEnum.STUDENT:
+        profile_result = await db.execute(
+            select(StudentProfile).where(StudentProfile.user_id == current_user.id)
+        )
+        profile = profile_result.scalars().first()
+        if profile:
+            if profile_data.phone is not None: profile.phone = profile_data.phone
+            if profile_data.bio is not None: profile.bio = profile_data.bio
+            if profile_data.department is not None: profile.department = profile_data.department
+
+    await db.commit()
+    return StandardResponse(success=True, data={"message": "Profile updated successfully"}, error=None)
+
+
 
 @router.post("/repair-profile", response_model=StandardResponse)
 async def repair_profile(
