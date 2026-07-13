@@ -1,14 +1,15 @@
 # OmniSync - Automated Academic Operations Platform
 
-Welcome to **OmniSync**, a state-of-the-art unified platform meticulously engineered for academic institutions. Developed originally for the Artificial Intelligence & Data Science (AI & DS) department, OmniSync aims to revolutionize and automate conventional academic workflows. By integrating robust data extraction capabilities, intelligent attendance tracking, and automated background notifications, OmniSync empowers Head of Departments (HOD), Faculty members, and Students with a seamless digital experience.
+Welcome to **OmniSync**, a state-of-the-art unified platform meticulously engineered for academic institutions. Developed originally for the Artificial Intelligence & Data Science (AI & DS) department, OmniSync aims to revolutionize and automate conventional academic workflows. By integrating robust data extraction capabilities, intelligent attendance tracking, dynamic user interfaces, and automated background notifications, OmniSync empowers Head of Departments (HOD), Faculty members, and Students with a seamless digital experience.
 
 ## 🌟 Executive Summary
 
 In the contemporary educational ecosystem, manual tracking of academic calendars and student attendance is both time-consuming and prone to human error. OmniSync bridges this gap by providing an end-to-end web-based solution that:
-1. **Automates Academic Calendar Parsing**: Upload PDF calendars directly into the system, which leverages advanced extraction algorithms to parse events, categorize them by department and audience, and store them securely.
-2. **Generates Defaulter Lists**: Faculty can upload attendance sheets (CSV/Excel), and the system instantly analyzes the data, computes aggregate attendance statistics, and highlights students falling below the mandatory threshold.
-3. **Proactive Notifications**: A robust background scheduling agent dispatches timely email alerts for upcoming events and attendance warnings to relevant students and faculty, ensuring no deadline is ever missed.
-4. **Role-Based Access Control (RBAC)**: Segregated dashboards tailored specifically for HODs, Faculty, and Students, ensuring data privacy and operational security.
+1. **Automates Academic Calendar Parsing**: Upload PDF calendars directly into the system, which leverages advanced extraction algorithms to parse events, categorize them by department and audience, and store them securely in the PostgreSQL database.
+2. **Generates Defaulter Lists (with Advanced Granularity)**: Faculty can upload attendance sheets (CSV/Excel), and the system instantly analyzes the data. It now computes aggregate attendance statistics distinguishing between Theory, Practical, and Total attendance, seamlessly handling "N/A" edge cases for absent lab sessions.
+3. **Proactive Notifications & Schedulers**: A robust background scheduling agent dispatches timely email alerts for upcoming events and attendance warnings to relevant students and faculty, ensuring no deadline is ever missed. It polls the database continuously without blocking the main event loop.
+4. **Role-Based Access Control (RBAC)**: Segregated dashboards tailored specifically for HODs, Faculty, and Students, ensuring data privacy and operational security. Only authorized roles can broadcast emails or generate enterprise-grade reports.
+5. **Ultra-Premium Enterprise Reporting**: Automatically generate and export "Academic Audit" quality PDF reports via jsPDF, complete with cover pages, standardized typography, automated pagination, custom coloring for critical cases, and formal signature blocks for HODs and Registrars.
 
 ---
 
@@ -18,8 +19,8 @@ The OmniSync platform adopts a modern, decoupled client-server architecture to e
 
 ### Frontend Application
 - **Framework**: React.js powered by Vite for lightning-fast Hot Module Replacement (HMR) and optimized production builds.
-- **Styling**: Tailwind CSS integration for a responsive, accessible, and aesthetically premium user interface.
-- **Key Features**: Secure JWT-based authentication, interactive charts for attendance visualization, drag-and-drop file uploaders, and real-time event polling.
+- **Styling**: Vanilla CSS combined with custom design tokens for a highly responsive, accessible, and aesthetically premium user interface. The UI features glassmorphism, dynamic grids, and refined spacing (like our custom sidebar layout).
+- **Key Features**: Secure JWT-based authentication, interactive charts for attendance visualization, drag-and-drop file uploaders, real-time event polling, and client-side premium PDF generation.
 - *For detailed frontend documentation, refer to the [Frontend Documentation](./frontend/README.md).*
 
 ### Backend Service
@@ -37,13 +38,14 @@ The OmniSync platform adopts a modern, decoupled client-server architecture to e
 The core component of OmniSync is its ability to digitize traditional PDF academic calendars. 
 - **PDF Extraction**: Utilizing advanced text extraction techniques to identify tabular and listed data within complex PDF structures.
 - **Intelligent Parsing**: Applies heuristic algorithms and regular expressions to extract dates, event titles, descriptions, and target audiences.
-- **De-duplication Engine**: Automatically cross-references incoming events with existing database records to prevent redundant entries.
+- **De-duplication Engine**: Automatically cross-references incoming events with existing database records to prevent redundant entries and maintain data hygiene.
 
-### 2. Comprehensive Attendance Tracking
+### 2. Comprehensive Attendance Tracking & Analysis
 Managing student attendance is simplified through an intuitive upload and processing pipeline.
 - **Multi-format Support**: Accepts raw attendance data in both CSV and Excel formats.
-- **Data Aggregation**: Merges data across multiple subjects (e.g., SE, TE, BE levels) to compute overall attendance percentages.
-- **Defaulter Identification**: Automatically flags students whose cumulative attendance falls below the customizable departmental threshold (e.g., 75%).
+- **Data Aggregation**: Merges data across multiple subjects (e.g., SE, TE, BE levels) to compute overall attendance percentages. We strictly distinguish between Theory and Practical attendances to give a highly accurate overview.
+- **Edge-case Handling**: Accurately processes instances where practical attendance is "N/A", adjusting the denominator dynamically to prevent skewed percentages.
+- **Defaulter Identification**: Automatically flags students whose cumulative attendance falls below the customizable departmental threshold (e.g., 75%), categorizing them into standard and "Critical" risk levels.
 
 ### 3. Automated Notification Agent
 OmniSync doesn't just store data; it actively works for you in the background.
@@ -51,6 +53,12 @@ OmniSync doesn't just store data; it actively works for you in the background.
 - **Email Delivery System**: Broadcasts customized HTML email notifications to registered users (using secure SMTP configuration).
 - **Delivery Logging**: Maintains a precise audit trail (`send_logs` table) to monitor the success or failure of dispatched emails, with a configuration interface to manage and securely wipe logs when necessary.
 - **Dynamic Configuration**: A dedicated UI allows adjusting defaulter thresholds, broadcast toggles, and UI preferences that instantly reflect and persist across user sessions.
+
+### 4. Enterprise-Grade Export Engine
+The UI contains a highly customized jsPDF integration.
+- **Cover Pages**: Generates formal Academic Audit cover pages with institutional branding and matrix summaries.
+- **Conditional Formatting**: Dynamically colors critical defaulter cases (in bold red) and standard defaulters (in amber) directly within the PDF tables.
+- **Sign-off Workflows**: Automatically injects signature lines for authoritative validation by Head of Departments and the Academic Registrar.
 
 ---
 
@@ -119,13 +127,4 @@ OmniSync enforces strict security paradigms to protect sensitive academic data:
 
 ---
 
-## 🤝 Contribution Guidelines
-
-We welcome contributions to OmniSync! Whether you are squashing bugs, improving documentation, or proposing new features, please adhere to our contribution workflow:
-1. Fork the repository and create a new feature branch (`git checkout -b feature/amazing-feature`).
-2. Ensure your code adheres to the existing styling conventions (e.g., ESLint for Frontend, PEP 8 for Backend).
-3. Write clear, concise commit messages.
-4. Open a Pull Request detailing the changes and the rationale behind them.
-
----
 *OmniSync — Bridging the gap between administration and automation.*

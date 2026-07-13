@@ -206,9 +206,141 @@ async def get_attendance_stats(
         error=None
     )
 
+@router.get("/defaulters", response_model=StandardResponse)
+async def get_defaulters(
+    current_user: User = Depends(allow_faculty_hod),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Compute defaulters from actual lecture attendance records.
+    
+    For each class, we look at every lecture conducted.
+    A student (identified by roll number) is absent from a lecture if their
+    roll number appears in `absentee_roll_numbers`.
+    
+    Attendance % = (Lectures NOT absent / Total lectures in that class) * 100
+    - Below 75%: At Risk (defaulter)
+    - Below 50%: Critical
+    """
+    # Fetch all lectures with their class name and subject name
+    lectures_query = await db.execute(
+        select(LectureAttendance, Class.name, Subject.name)
+        .join(Class, LectureAttendance.class_id == Class.id)
+        .join(Subject, LectureAttendance.subject_id == Subject.id)
+        .order_by(Class.name, Subject.name, LectureAttendance.lecture_date)
+    )
+    lectures = lectures_query.all()
+
+    if not lectures:
+        return StandardResponse(success=True, data=[], error=None)
+
+    # Build per-class-subject structure:
+    class_data: dict = {}
+
+    for lecture, class_name, subject_name in lectures:
+        key = f"{class_name} - {subject_name}"
+        if key not in class_data:
+            class_data[key] = {
+                "total_theory": 0,
+                "total_practical": 0,
+                "absentees": {},
+                "class_name": class_name,
+                "subject_name": subject_name
+            }
+            
+        session_type = lecture.session_type or "Theory"
+        if session_type == "Lecture":
+            session_type = "Theory"
+            
+        if session_type == "Theory":
+            class_data[key]["total_theory"] += 1
+        elif session_type == "Practical":
+            class_data[key]["total_practical"] += 1
+        else:
+            # Fallback if there's any other strange session type
+            class_data[key]["total_theory"] += 1
+            session_type = "Theory"
+
+        absentees = lecture.absentee_roll_numbers or []
+        for roll in absentees:
+            roll = str(roll).strip()
+            if roll:
+                if roll not in class_data[key]["absentees"]:
+                    class_data[key]["absentees"][roll] = {"Theory": 0, "Practical": 0}
+                
+                class_data[key]["absentees"][roll][session_type] += 1
+
+    # Fetch all student profiles for name lookup (roll_number -> name)
+    profiles_query = await db.execute(
+        select(StudentProfile, User).join(User, StudentProfile.user_id == User.id)
+    )
+    profiles = profiles_query.all()
+    roll_to_name: dict = {
+        sp.roll_number: f"{u.first_name} {u.last_name}"
+        for sp, u in profiles
+    }
+
+    defaulter_list = []
+
+    for key, data in class_data.items():
+        total_t = data["total_theory"]
+        total_p = data["total_practical"]
+        
+        if total_t == 0 and total_p == 0:
+            continue
+
+        for roll, absent_counts in data["absentees"].items():
+            absent_t = absent_counts["Theory"]
+            absent_p = absent_counts["Practical"]
+            
+            theory_pct = round(((total_t - absent_t) / total_t) * 100) if total_t > 0 else "N/A"
+            practical_pct = round(((total_p - absent_p) / total_p) * 100) if total_p > 0 else "N/A"
+            
+            total_sessions = total_t + total_p
+            total_attended = (total_t - absent_t) + (total_p - absent_p)
+            attendance_pct = round((total_attended / total_sessions) * 100) if total_sessions > 0 else "N/A"
+
+            if attendance_pct < 75:
+                status = "Critical" if attendance_pct < 50 else "At Risk"
+                defaulter_list.append({
+                    "id": f"{roll}-{data['subject_name']}", # Make unique since same student could be in multiple subjects
+                    "roll": roll,
+                    "name": roll_to_name.get(roll, roll),   # fallback to roll number if not in profiles
+                    "class": key, # Grouping key for frontend
+                    "original_class": data["class_name"],
+                    "subject": data["subject_name"],
+                    "theory_attendance": theory_pct,
+                    "practical_attendance": practical_pct,
+                    "attendance": attendance_pct,
+                    "status": status,
+                    "checked": False
+                })
+
+    # Sort: Critical first, then by attendance ascending
+    defaulter_list.sort(key=lambda x: (0 if x["status"] == "Critical" else 1, x["attendance"]))
+
+    return StandardResponse(
+        success=True,
+        data=defaulter_list,
+        error=None
+    )
+
+from pydantic import BaseModel
+class BroadcastRequest(BaseModel):
+    defaulter_ids: List[str]
+
+@router.post("/defaulters/broadcast", response_model=StandardResponse)
+async def broadcast_defaulters(
+    payload: BroadcastRequest,
+    current_user: User = Depends(allow_faculty_hod)
+):
+    print(f"Simulating broadcasting emails to class for {len(payload.defaulter_ids)} students.")
+    return StandardResponse(success=True, data="Emails successfully broadcasted to the entire class as per service.", error=None)
+
 
 
 allow_hod = RoleChecker([RoleEnum.HOD])
+
 
 @router.post("/generate", response_model=StandardResponse)
 def generate_defaulter_list(

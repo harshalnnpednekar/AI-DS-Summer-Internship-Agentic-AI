@@ -5,10 +5,10 @@ This directory contains the robust, asynchronous REST API that powers the OmniSy
 ## 🌟 Architectural Highlights
 
 - **FastAPI Framework**: Chosen for its exceptional speed, built-in validation via Pydantic, and native support for asynchronous programming (ASGI).
-- **SQLAlchemy 2.0 (Async)**: Utilizes asynchronous database sessions (`AsyncSession`) to ensure non-blocking database I/O, drastically improving throughput under heavy load.
+- **SQLAlchemy 2.0 (Async)**: Utilizes asynchronous database sessions (`AsyncSession`) to ensure non-blocking database I/O, drastically improving throughput under heavy load. It seamlessly queries complex relational mappings (like Theory vs Practical records).
 - **Alembic Migrations**: Maintains a strict, version-controlled history of database schema changes, ensuring reproducible deployments across environments.
-- **APScheduler**: Integrates the Advanced Python Scheduler to execute recurring background tasks—specifically, monitoring upcoming academic deadlines and dispatching email notifications.
-- **Modular Routing**: API endpoints are logically segmented into routers (`users.py`, `events.py`, `attendance.py`, `auth.py`), adhering to Separation of Concerns (SoC).
+- **APScheduler Integration**: We replaced basic background tasks with the Advanced Python Scheduler (specifically `AsyncIOScheduler`) to execute recurring background tasks—namely, monitoring upcoming academic deadlines and dispatching email notifications continuously every 5 minutes without blocking the main event loop.
+- **Modular Routing**: API endpoints are logically segmented into routers (`users.py`, `events.py`, `attendance.py`, `auth.py`), adhering to strict Separation of Concerns (SoC).
 
 ## 🗂️ Directory Structure
 
@@ -21,12 +21,12 @@ backend/
 │   ├── crud.py             # Create, Read, Update, Delete (CRUD) operations
 │   ├── database.py         # Database connection pooling and session management
 │   ├── dependencies.py     # FastAPI dependencies (e.g., Auth, DB Session)
-│   ├── main.py             # FastAPI application factory and lifecycle events
+│   ├── main.py             # FastAPI application factory and lifecycle events (Scheduler bootup)
 │   ├── routers/            # API Route definitions
 │   └── services/           # Business logic and external integrations
 │       ├── calendar_extractor/ # PDF parsing algorithms and utilities
 │       ├── email/          # SMTP email dispatch services
-│       └── scheduler/      # Background task orchestration
+│       └── scheduler/      # Background task orchestration (AsyncIOScheduler)
 ├── run_backend.py          # Uvicorn server entry point
 ├── alembic.ini             # Alembic configuration file
 └── requirements.txt        # Python dependency manifest
@@ -40,10 +40,10 @@ A specialized module tasked with parsing uploaded PDF academic calendars.
 - **`parser.py`**: Contains complex regular expressions and heuristic algorithms to isolate dates, event titles, and intended audiences from unstructured text.
 - **`validator.py`**: Enforces strict Pydantic models (`AcademicEvent`) on the extracted data to ensure structural integrity before database insertion.
 
-### 2. Automated Scheduler (`app/services/scheduler/`)
-Operates independently of the HTTP request-response cycle to execute time-sensitive tasks.
+### 2. Advanced Asynchronous Scheduler (`app/services/scheduler/`)
+Operates independently of the HTTP request-response cycle to execute time-sensitive tasks without stalling the FastAPI application.
 - **`agent.py`**: Defines the `notification_workflow`, which queries the database for upcoming events (e.g., within 7 days) and prepares customized email templates.
-- **`scheduler.py`**: Configures the `AsyncIOScheduler`, registering jobs to run at defined intervals (e.g., a CRON job executing every 5 minutes).
+- **`scheduler.py`**: Configures the `AsyncIOScheduler`, registering jobs to run at defined intervals (e.g., a CRON job executing every 5 minutes). This is booted up seamlessly inside `main.py` via FastAPI lifecycle hooks (`@app.on_event("startup")`).
 
 ### 3. Authentication & Security
 - Leverages OAuth2 Password Bearer flow.
@@ -52,7 +52,7 @@ Operates independently of the HTTP request-response cycle to execute time-sensit
 
 ## 🗄️ Database Schema Reference
 
-OmniSync utilizes a highly normalized PostgreSQL relational database. Below are the core tables and their structures as defined by our SQLAlchemy models.
+OmniSync utilizes a highly normalized PostgreSQL relational database. Below are all the core tables and their structures as defined by our SQLAlchemy models.
 
 ### `users`
 Core authentication table for all users (HOD, Faculty, Students).
@@ -65,7 +65,6 @@ Core authentication table for all users (HOD, Faculty, Students).
 | `last_name` | String(100) | Not Null | User's last name |
 | `role` | Enum | Not Null | `HOD`, `FACULTY`, or `STUDENT` |
 | `created_at` | DateTime | Not Null | Timestamp of creation |
-| `updated_at` | DateTime | Not Null | Timestamp of last update |
 
 ### `faculty_profiles`
 Extended profile information for Faculty members.
@@ -75,10 +74,10 @@ Extended profile information for Faculty members.
 | `user_id` | UUID | Foreign Key (`users.id`), Unique | Link to core user account |
 | `department` | String(100) | Not Null | e.g., "AI & DS" |
 | `designation` | String(100) | Not Null | e.g., "Assistant Professor" |
-| `assigned_classes` | String(100) | Nullable | Classes assigned (e.g., "SE-A") |
+| `assigned_classes` | String(100) | Nullable | Classes assigned |
 
 ### `student_profiles`
-Extended profile information for Students.
+Extended profile information for Students, crucial for attendance mappings.
 | Column Name | Data Type | Constraints | Description |
 |---|---|---|---|
 | `id` | UUID | Primary Key | Profile identifier |
@@ -178,12 +177,12 @@ The backend exposes a comprehensive set of RESTful endpoints prefixed with `/api
 ### Events & Calendar (`/api/events`)
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
-| `GET`  | `/upcoming` | Retrieves events happening within a specified timeframe (e.g., next 7 days) | No |
+| `GET`  | `/upcoming` | Retrieves events happening within a specified timeframe | No |
 | `GET`  | `/events` | Retrieves a paginated list of all events | No |
 | `POST` | `/` | Manually creates a new event | Yes (HOD/Faculty) |
 | `POST` | `/extract` | Parses an uploaded Academic Calendar PDF and extracts events | Yes (HOD/Faculty) |
 | `POST` | `/send-log` | Records an audit log when an automated email is dispatched | System/Internal |
-| `GET`  | `/broadcast-logs` | Retrieves broadcast delivery logs (simulated or actual) | Yes |
+| `GET`  | `/broadcast-logs` | Retrieves broadcast delivery logs | Yes |
 | `DELETE` | `/broadcast-logs` | Clears all broadcast logs from the database | Yes |
 
 ### Attendance (`/api/attendance`)
@@ -192,13 +191,13 @@ The backend exposes a comprehensive set of RESTful endpoints prefixed with `/api
 | `GET`  | `/form-meta` | Fetches metadata (subjects, classes) for the attendance upload form | Yes (Faculty) |
 | `POST` | `/submit` | Accepts CSV/Excel files to bulk upload attendance records | Yes (Faculty) |
 | `GET`  | `/stats` | Retrieves aggregated attendance statistics for dashboard charts | Yes |
-| `POST` | `/generate` | Generates a defaulter list based on a minimum threshold (e.g., 75%) | Yes (HOD/Faculty) |
+| `POST` | `/generate` | Generates a defaulter list based on a minimum threshold | Yes (HOD/Faculty) |
 | `POST` | `/broadcast/{list_id}`| Dispatches warning emails to all students on a specific defaulter list | Yes (HOD/Faculty) |
 
 ### Users & Profiles (`/api/users`)
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
-| `GET`  | `/` | Retrieves a list of users (primarily used for fetching students) | Yes (Faculty) |
+| `GET`  | `/` | Retrieves a list of users | Yes (Faculty) |
 | `GET`  | `/department/{department}` | Retrieves all users belonging to a specific department | Yes (HOD) |
 
 ## 🚀 Getting Started
@@ -212,8 +211,7 @@ pip install -r requirements.txt
 ```
 
 ### 2. Database Initialization
-Ensure PostgreSQL is running and a database named `event_notification_db` exists. The connection string is managed in `app/database.py`.
-
+Ensure PostgreSQL is running and a database named `event_notification_db` exists.
 Run the Alembic migrations to construct the schema:
 ```bash
 alembic upgrade head
@@ -230,5 +228,3 @@ This script invokes `uvicorn` with hot-reloading enabled. The API will be access
 FastAPI automatically generates interactive documentation for all endpoints. Once the server is running, visit:
 - **Swagger UI**: `http://127.0.0.1:8000/docs`
 - **ReDoc**: `http://127.0.0.1:8000/redoc`
-
-Use these interfaces to explore the API schema, test endpoints, and verify authentication flows directly from your browser.

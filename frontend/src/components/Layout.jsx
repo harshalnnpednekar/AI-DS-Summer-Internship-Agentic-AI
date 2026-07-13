@@ -125,7 +125,6 @@ const Layout = () => {
               <NavLink to="/defaulter-management" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
                 <AlertTriangle size={20} />
                 <span>Defaulter Management</span>
-                <span className="nav-badge">8</span>
               </NavLink>
             )}
             {userInfo.role === 'HOD' && (
