@@ -121,3 +121,14 @@
 .class-group-header:hover {
   background-color: #F1F5F9;
 }
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

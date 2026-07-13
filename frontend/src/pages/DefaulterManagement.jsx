@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { AlertTriangle, Download, Send, CheckSquare, Square, Loader, ChevronDown, ChevronUp } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -9,6 +10,14 @@ const DefaulterManagement = () => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [collapsedClasses, setCollapsedClasses] = useState({});
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast(null);
+    }, 4000);
+  };
 
   useEffect(() => {
     const fetchDefaulters = async () => {
@@ -52,7 +61,7 @@ const DefaulterManagement = () => {
   const handleBroadcast = async () => {
     const selectedIds = students.map(s => s.id);
     if (selectedIds.length === 0) {
-      alert('No students to broadcast.');
+      showToast('No students selected to broadcast.', 'error');
       return;
     }
     
@@ -68,13 +77,13 @@ const DefaulterManagement = () => {
       });
       const data = await response.json();
       if (data && data.success) {
-        alert(data.data || 'Emails successfully broadcasted to the entire class as per service.');
+        showToast(data.data || 'Emails successfully broadcasted to the entire class.', 'success');
       } else {
-        alert('Failed to broadcast.');
+        showToast('Failed to broadcast warning emails.', 'error');
       }
     } catch (error) {
       console.error('Error broadcasting:', error);
-      alert('Error broadcasting.');
+      showToast('Network error occurred during broadcast.', 'error');
     }
   };
 
@@ -462,6 +471,31 @@ const DefaulterManagement = () => {
           </span>
         </div>
       </div>
+
+      {/* Premium Toast Notification */}
+      {toast && createPortal(
+        <div style={{
+          position: 'fixed',
+          top: '24px',
+          right: '24px',
+          background: toast.type === 'success' ? '#0f766e' : '#b91c1c',
+          color: 'white',
+          padding: '16px 24px',
+          borderRadius: '12px',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          zIndex: 9999,
+          animation: 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+          fontWeight: '500',
+          fontSize: '0.95rem'
+        }}>
+          {toast.type === 'success' ? <CheckSquare size={20} /> : <AlertTriangle size={20} />}
+          {toast.message}
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
