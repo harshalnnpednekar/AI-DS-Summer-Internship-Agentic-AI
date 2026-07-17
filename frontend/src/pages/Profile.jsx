@@ -5,6 +5,7 @@ import {
   Award, Hash, Layers, Users, Edit3, Save, X, FileText
 } from 'lucide-react';
 import './Profile.css';
+import SubjectManager from '../components/SubjectManager';
 
 const getInitials = (first = '', last = '') =>
   `${first[0] || ''}${last[0] || ''}`.toUpperCase();
@@ -14,6 +15,7 @@ const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [availableClasses, setAvailableClasses] = useState([]);
   
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false);
@@ -22,8 +24,25 @@ const Profile = () => {
 
   useEffect(() => {
     fetchProfile();
+    fetchClasses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const fetchClasses = async () => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+    try {
+      const res = await fetch('/api/attendance/form-meta', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success && data.data && data.data.classes) {
+        setAvailableClasses(data.data.classes);
+      }
+    } catch (e) {
+      console.error("Failed to fetch classes", e);
+    }
+  };
 
   const fetchProfile = async () => {
     const token = localStorage.getItem('accessToken');
@@ -50,6 +69,19 @@ const Profile = () => {
     setEditForm(prev => ({ ...prev, [field]: value }));
   };
 
+  const toggleClass = (className) => {
+    const currentStr = editForm.assigned_classes || '';
+    const currentClasses = currentStr.replace(/[{}]/g, '').split(',').map(s => s.trim()).filter(s => s);
+    
+    if (currentClasses.includes(className)) {
+       const newClasses = currentClasses.filter(c => c !== className);
+       handleEditChange('assigned_classes', newClasses.join(', '));
+    } else {
+       currentClasses.push(className);
+       handleEditChange('assigned_classes', currentClasses.join(', '));
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     const token = localStorage.getItem('accessToken');
@@ -62,6 +94,7 @@ const Profile = () => {
         designation: editForm.designation,
         department: editForm.department,
         assigned_classes: editForm.assigned_classes,
+        joining_year: editForm.joining_year,
       };
 
       const res = await fetch('/api/auth/me', {
@@ -231,9 +264,29 @@ const Profile = () => {
                   <div className="detail-item">
                     <span className="detail-label">Assigned Classes</span>
                     {isEditing ? (
-                      <input className="form-input" value={editForm.assigned_classes || ''} placeholder="e.g. SE-A, TE-B" onChange={(e) => handleEditChange('assigned_classes', e.target.value)} />
+                      <div className="class-pills">
+                        {availableClasses.length > 0 ? availableClasses.map(cls => {
+                          const currentStr = editForm.assigned_classes || '';
+                          const currentClasses = currentStr.replace(/[{}]/g, '').split(',').map(s => s.trim()).filter(s => s);
+                          const isSelected = currentClasses.includes(cls.name);
+                          return (
+                            <button
+                              key={cls.id}
+                              type="button"
+                              className={`class-pill ${isSelected ? 'selected' : ''}`}
+                              onClick={() => toggleClass(cls.name)}
+                            >
+                              {cls.name}
+                            </button>
+                          );
+                        }) : <span className="detail-value text-muted">No classes available</span>}
+                      </div>
                     ) : (
-                      <span className="detail-value">{profile.assigned_classes || 'None'}</span>
+                      <div className="class-pills view-only">
+                        {profile.assigned_classes ? profile.assigned_classes.replace(/[{}]/g, '').split(',').map(c => c.trim()).filter(c=>c).map(c => (
+                          <span key={c} className="class-pill selected view-only">{c}</span>
+                        )) : <span className="detail-value text-muted">None</span>}
+                      </div>
                     )}
                   </div>
                 </>
@@ -258,13 +311,22 @@ const Profile = () => {
               
               <div className="detail-item">
                 <span className="detail-label">Joining Year</span>
-                <span className="detail-value">{profile.joining_year || 'N/A'}</span>
+                {isEditing ? (
+                  <input className="form-input" value={editForm.joining_year || ''} placeholder="e.g. 2023" onChange={(e) => handleEditChange('joining_year', e.target.value)} />
+                ) : (
+                  <span className="detail-value">{profile.joining_year || 'N/A'}</span>
+                )}
               </div>
             </div>
           </div>
           
         </div>
       </div>
+      
+      {/* Subject Management for Faculty/HOD (Full Width) */}
+      {(role === 'HOD' || role === 'FACULTY') && !isEditing && (
+        <SubjectManager assignedClasses={profile.assigned_classes} />
+      )}
     </div>
   );
 };

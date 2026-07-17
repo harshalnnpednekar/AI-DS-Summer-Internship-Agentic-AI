@@ -13,6 +13,7 @@ const MarkAttendance = () => {
   const [timeSlot, setTimeSlot] = useState('');
   const [sessionType, setSessionType] = useState('Theory');
   const [semester, setSemester] = useState('');
+  const [currentSemesterNum, setCurrentSemesterNum] = useState(null);
   
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
@@ -68,6 +69,7 @@ const MarkAttendance = () => {
   useEffect(() => {
     if (!selectedClass || !date || classes.length === 0) {
       setSemester('');
+      setCurrentSemesterNum(null);
       return;
     }
     const cls = classes.find(c => c.id === selectedClass);
@@ -82,6 +84,7 @@ const MarkAttendance = () => {
     
     if (year === 0) {
       setSemester('');
+      setCurrentSemesterNum(null);
       return;
     }
     
@@ -100,11 +103,13 @@ const MarkAttendance = () => {
     };
     
     setSemester(`${getOrdinal(semNumber)} Semester`);
+    setCurrentSemesterNum(semNumber);
   }, [selectedClass, date, classes]);
 
   const handleClassChange = (e) => {
     const val = e.target.value;
     setSelectedClass(val);
+    setSelectedSubject('');
     const cls = classes.find(c => c.id === val);
     if (cls) setTotalStudents(cls.total_students);
   };
@@ -247,7 +252,10 @@ const MarkAttendance = () => {
                 <label>Subject <span className="text-danger">*</span></label>
                 <select className="form-select" value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} required>
                   <option value="" disabled hidden>Select a subject</option>
-                  {subjects.map(s => (
+                  {subjects.filter(s => {
+                    if (!selectedClass || currentSemesterNum === null) return true;
+                    return s.semester === currentSemesterNum;
+                  }).map(s => (
                     <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
                   ))}
                 </select>

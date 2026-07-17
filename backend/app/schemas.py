@@ -132,6 +132,7 @@ class ProfileUpdate(BaseModel):
     designation: Optional[str] = None
     department: Optional[str] = None
     assigned_classes: Optional[str] = None
+    joining_year: Optional[str] = None
 
 # --- Auth Schemas ---
 
@@ -215,6 +216,33 @@ class DefaulterListResponse(DefaulterListBase):
     generated_by: UUID
     generated_at: datetime
     broadcast_status: str
+
+    model_config = {'from_attributes': True}
+
+# --- Subject Schemas ---
+
+class SubjectBase(BaseModel):
+    code: str
+    name: str
+    department_id: str
+    semester: int
+    year: str
+
+class SubjectResponse(SubjectBase):
+    id: UUID
+
+    model_config = {'from_attributes': True}
+
+class FacultySubjectMappingBase(BaseModel):
+    class_id: UUID
+    subject_id: UUID
+
+class FacultySubjectMappingCreate(FacultySubjectMappingBase):
+    pass
+
+class FacultySubjectMappingResponse(FacultySubjectMappingBase):
+    id: UUID
+    faculty_id: UUID
 
     model_config = {'from_attributes': True}
 

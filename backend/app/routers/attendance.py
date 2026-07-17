@@ -46,7 +46,7 @@ async def get_form_meta(
             success=True,
             data={
                 "classes": [{"id": str(c.id), "name": c.name, "total_students": c.total_students} for c in classes],
-                "subjects": [{"id": str(s.id), "code": s.code, "name": s.name} for s in subjects]
+                "subjects": [{"id": str(s.id), "code": s.code, "name": s.name, "year": s.year, "semester": s.semester} for s in subjects]
             }
         )
 

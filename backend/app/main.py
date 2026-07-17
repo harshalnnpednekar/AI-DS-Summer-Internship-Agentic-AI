@@ -8,7 +8,7 @@ if sys.platform == "win32":
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import events, auth, attendance, users
+from app.routers import events, auth, attendance, users, subjects
 import logging
 from contextlib import asynccontextmanager
 
@@ -61,6 +61,7 @@ app.include_router(events.router)
 app.include_router(auth.router)
 app.include_router(attendance.router)
 app.include_router(users.router)
+app.include_router(subjects.router)
 
 @app.get("/")
 async def health_check():

@@ -195,6 +195,7 @@ async def update_me(
             if profile_data.designation is not None: profile.designation = profile_data.designation
             if profile_data.department is not None: profile.department = profile_data.department
             if profile_data.assigned_classes is not None: profile.assigned_classes = profile_data.assigned_classes
+            if profile_data.joining_year is not None: profile.joining_year = profile_data.joining_year
     
     elif current_user.role == RoleEnum.STUDENT:
         profile_result = await db.execute(
@@ -205,6 +206,7 @@ async def update_me(
             if profile_data.phone is not None: profile.phone = profile_data.phone
             if profile_data.bio is not None: profile.bio = profile_data.bio
             if profile_data.department is not None: profile.department = profile_data.department
+            if profile_data.joining_year is not None: profile.joining_year = profile_data.joining_year
 
     await db.commit()
     return StandardResponse(success=True, data={"message": "Profile updated successfully"}, error=None)

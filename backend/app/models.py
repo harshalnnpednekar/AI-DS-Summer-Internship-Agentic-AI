@@ -116,6 +116,8 @@ class Subject(Base):
     code = Column(String(50), nullable=False)
     name = Column(String(100), nullable=False)
     department_id = Column(String(100), nullable=False)
+    semester = Column(Integer, nullable=False, default=1)
+    year = Column(String(10), nullable=False, default="FE")
 
 class FacultySubjectMapping(Base):
     __tablename__ = "faculty_subject_mappings"

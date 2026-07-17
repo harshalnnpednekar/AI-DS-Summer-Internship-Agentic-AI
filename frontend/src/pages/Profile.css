@@ -4,7 +4,6 @@
   padding: 0;
   background-color: transparent;
   color: var(--color-text-primary);
-  height: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -82,8 +81,6 @@
   grid-template-columns: 320px 1fr;
   gap: 24px;
   align-items: stretch; /* Make left card stretch to match right column height */
-  flex: 1;
-  min-height: 0; /* Prevents overflow in flex child */
 }
 
 /* Sidebar Profile Card */
@@ -96,7 +93,6 @@
   text-align: center;
   position: relative;
   overflow: hidden;
-  height: 100%; /* Ensure it takes full height */
   display: flex;
   flex-direction: column;
   justify-content: center; /* Center content vertically to avoid wasted space at bottom */
@@ -190,7 +186,6 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  height: 100%;
 }
 
 .detail-card {
@@ -286,6 +281,55 @@
   border-color: #0ea5e9;
   background: #fff;
   box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+}
+
+/* Class Pills for Multiple Selection */
+.class-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.class-pill {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+}
+
+.class-pill:hover:not(.view-only) {
+  background: #e2e8f0;
+  transform: translateY(-1px);
+}
+
+.class-pill.selected {
+  background: #10b981;
+  border-color: #10b981;
+  color: white;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
+.class-pill.selected:hover:not(.view-only) {
+  background: #059669;
+  border-color: #059669;
+}
+
+.class-pills.view-only {
+  gap: 8px;
+}
+
+.class-pill.view-only {
+  cursor: default;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  pointer-events: none;
 }
 
 @media (max-width: 900px) {
