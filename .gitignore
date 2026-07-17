@@ -27,3 +27,7 @@ backend/.vscode/
 .claude/
 .agents/
 .gemini/
+
+# Generated Excel Sheets
+excel_sheets/
+backend/excel_sheets/

@@ -135,7 +135,11 @@ const MarkAttendance = () => {
       e.preventDefault();
       const val = currentRoll.trim().replace(/,/g, '');
       if (val && !absentees.includes(val)) {
-        setAbsentees([...absentees, val]);
+        if (totalStudents && parseInt(val, 10) > parseInt(totalStudents, 10)) {
+          alert(`Roll number ${val} exceeds total enrolled students (${totalStudents}).`);
+        } else {
+          setAbsentees([...absentees, val]);
+        }
       }
       setCurrentRoll('');
     } else if (e.key === 'Backspace' && !currentRoll && absentees.length > 0) {
@@ -240,14 +244,13 @@ const MarkAttendance = () => {
                 </select>
               </div>
               <div className="form-group half">
-                <label>Lecture Topic / Module <span className="text-danger">*</span></label>
+                <label>Lecture Topic / Module</label>
                 <input 
                   type="text" 
                   className="form-input" 
-                  placeholder="Enter specific topic" 
+                  placeholder="Enter specific topic (Optional)" 
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
-                  required 
                 />
               </div>
             </div>

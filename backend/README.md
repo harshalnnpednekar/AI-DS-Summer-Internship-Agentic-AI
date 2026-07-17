@@ -26,6 +26,7 @@ backend/
 │   └── services/           # Business logic and external integrations
 │       ├── calendar_extractor/ # PDF parsing algorithms and utilities
 │       ├── email/          # SMTP email dispatch services
+│       ├── excel_agent/    # In-memory Excel generation engine
 │       └── scheduler/      # Background task orchestration (AsyncIOScheduler)
 ├── run_backend.py          # Uvicorn server entry point
 ├── alembic.ini             # Alembic configuration file
@@ -193,6 +194,8 @@ The backend exposes a comprehensive set of RESTful endpoints prefixed with `/api
 | `GET`  | `/stats` | Retrieves aggregated attendance statistics for dashboard charts | Yes |
 | `POST` | `/generate` | Generates a defaulter list based on a minimum threshold | Yes (HOD/Faculty) |
 | `POST` | `/broadcast/{list_id}`| Dispatches warning emails to all students on a specific defaulter list | Yes (HOD/Faculty) |
+| `GET`  | `/excel/subject` | Generates an in-memory Subject Excel sheet and streams it back to client | Yes |
+| `GET`  | `/excel/master`  | Generates an in-memory Master Excel sheet and streams it back to client | Yes |
 
 ### Users & Profiles (`/api/users`)
 | Method | Endpoint | Description | Auth Required |

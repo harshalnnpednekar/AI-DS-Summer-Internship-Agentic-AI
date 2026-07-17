@@ -87,6 +87,30 @@ const DefaulterManagement = () => {
     }
   };
 
+  const handleDownloadMasterExcel = async (className) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`/api/attendance/excel/master?class_name=${encodeURIComponent(className)}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Master_Attendance_Report_${className.replace(' ', '_')}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } else {
+        showToast('Failed to generate Master Excel.', 'error');
+      }
+    } catch (error) {
+      console.error('Error downloading excel:', error);
+      showToast('Network error occurred.', 'error');
+    }
+  };
+
 
   const exportToPDF = () => {
     if (students.length === 0) {
@@ -386,7 +410,19 @@ const DefaulterManagement = () => {
                         </span>
                       )}
                     </div>
-                    {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <button
+                        className="btn btn-primary"
+                        style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownloadMasterExcel(className);
+                        }}
+                      >
+                        <Download size={14} /> Master Excel
+                      </button>
+                      {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+                    </div>
                   </div>
 
                   {/* Table for this class */}

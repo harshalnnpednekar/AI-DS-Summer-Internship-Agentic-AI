@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, BookOpen, AlertTriangle, Search } from 'lucide-react';
+import { TrendingUp, BookOpen, AlertTriangle, Search, Download } from 'lucide-react';
 import './Pages.css';
 import './AttendanceTracking.css';
 
@@ -33,6 +33,36 @@ const AttendanceTracking = () => {
 
   
   const recentLectures = showAllRecent ? (stats.recent_lectures || []) : (stats.recent_lectures || []).slice(0, 5);
+
+  const handleDownloadSubjectExcel = async (className, subjectName, facultyName, sessionType) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const params = new URLSearchParams({
+        class_name: className,
+        subject_name: subjectName,
+        faculty_name: facultyName,
+        session_type: sessionType
+      });
+      const response = await fetch(`/api/attendance/excel/subject?${params.toString()}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${subjectName.replace(' ', '_')}_${facultyName.replace(' ', '_')}_${sessionType}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } else {
+        alert('Excel sheet not found. Click "Regenerate All" first if this is a past record.');
+      }
+    } catch (error) {
+      console.error('Error downloading excel:', error);
+      alert('Network error occurred.');
+    }
+  };
 
   return (
     <div className="page-container">
@@ -74,6 +104,73 @@ const AttendanceTracking = () => {
           </div>
           <div className="stat-value">{stats.under_75_count}</div>
           <div className="stat-context">Class-subject pairs at risk</div>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: '1.5rem' }}>
+        <div className="activity-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <BookOpen size={18} className="text-secondary" />
+            <h2>Subject Attendance Sheets</h2>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem' }}>
+          {(() => {
+            if (!stats.class_wise_stats || stats.class_wise_stats.length === 0) {
+              return <p style={{ color: '#64748B' }}>No subjects available yet.</p>;
+            }
+            
+            // Group by Class, then by Faculty
+            const grouped = stats.class_wise_stats.reduce((acc, stat) => {
+              if (!acc[stat.class]) acc[stat.class] = {};
+              if (!acc[stat.class][stat.professor]) acc[stat.class][stat.professor] = [];
+              acc[stat.class][stat.professor].push(stat);
+              return acc;
+            }, {});
+            
+            const sortOrder = { 'FE': 1, 'SE': 2, 'TE': 3, 'BE': 4 };
+            const getOrder = (className) => {
+              const prefix = className.split('-')[0];
+              return sortOrder[prefix] || 99;
+            };
+
+            return Object.keys(grouped).sort((a, b) => {
+              const orderA = getOrder(a);
+              const orderB = getOrder(b);
+              if (orderA !== orderB) return orderA - orderB;
+              return a.localeCompare(b);
+            }).map(className => (
+              <details key={className} style={{ background: '#fff', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
+                <summary style={{ padding: '1rem', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer', borderBottom: '1px solid var(--color-border)', listStyle: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '1.2rem', color: 'var(--color-text-secondary)' }}>▹</span> {className}
+                </summary>
+                <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {Object.keys(grouped[className]).sort().map(facultyName => (
+                    <details key={facultyName} style={{ border: '1px solid #e2e8f0', borderRadius: '6px', background: '#f8fafc' }}>
+                      <summary style={{ padding: '0.75rem 1rem', fontWeight: 600, cursor: 'pointer', borderBottom: '1px solid #e2e8f0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontSize: '1rem', color: 'var(--color-text-secondary)' }}>▹</span> Faculty: {facultyName}
+                      </summary>
+                      <div style={{ padding: '1rem', display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+                        {grouped[className][facultyName].map((stat, idx) => (
+                          <div key={idx} style={{ padding: '1rem', border: '1px solid var(--color-border)', borderRadius: '8px', minWidth: '250px', background: '#fff', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                            <h4 style={{ margin: '0 0 0.5rem 0' }}>{stat.subject}</h4>
+                            <p style={{ margin: '0 0 1rem 0', fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>{stat.session_type}</p>
+                            <button 
+                              className="btn btn-primary"
+                              style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '0.5rem', alignItems: 'center' }}
+                              onClick={() => handleDownloadSubjectExcel(stat.class, stat.subject, stat.professor, stat.session_type)}
+                            >
+                              <Download size={14} /> Download Excel
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              </details>
+            ));
+          })()}
         </div>
       </div>
 

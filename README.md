@@ -46,6 +46,7 @@ Managing student attendance is simplified through an intuitive upload and proces
 - **Data Aggregation**: Merges data across multiple subjects (e.g., SE, TE, BE levels) to compute overall attendance percentages. We strictly distinguish between Theory and Practical attendances to give a highly accurate overview.
 - **Edge-case Handling**: Accurately processes instances where practical attendance is "N/A", adjusting the denominator dynamically to prevent skewed percentages.
 - **Defaulter Identification**: Automatically flags students whose cumulative attendance falls below the customizable departmental threshold (e.g., 75%), categorizing them into standard and "Critical" risk levels.
+- **Dynamic Excel Generation**: Constructs fully formatted Master and Subject-specific Excel sheets dynamically in-memory and streams them directly to the client, removing any local filesystem clutter and ensuring data is always real-time.
 
 ### 3. Automated Notification Agent
 OmniSync doesn't just store data; it actively works for you in the background.

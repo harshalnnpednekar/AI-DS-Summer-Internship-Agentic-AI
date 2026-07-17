@@ -148,7 +148,6 @@ const Login = () => {
             </div>
 
             <div className="branding-footer">
-              Academic Year 2024-25 · Secure Faculty Portal
             </div>
           </div>
         </div>

@@ -12,6 +12,9 @@ from ..database import get_db
 from ..models import User, RoleEnum, Class, Subject, FacultySubjectMapping, LectureAttendance, FacultyProfile
 from ..dependencies import get_current_active_user, RoleChecker
 from ..schemas import StandardResponse, LectureAttendanceSubmit
+from app.services.excel_agent.excel_sync import excel_sync_agent
+from fastapi.responses import FileResponse, Response
+import os
 
 router = APIRouter(
     prefix="/api/attendance",
@@ -76,6 +79,33 @@ async def submit_attendance(
     db.add(new_attendance)
     await db.commit()
     await db.refresh(new_attendance)
+
+    # Fetch additional data for Excel sync
+    class_res = await db.execute(select(Class).where(Class.id == attendance.class_id))
+    class_obj = class_res.scalars().first()
+    
+    subject_res = await db.execute(select(Subject).where(Subject.id == attendance.subject_id))
+    subject_obj = subject_res.scalars().first()
+    
+    faculty_name = f"{current_user.first_name} {current_user.last_name}"
+
+    # Normalize session_type
+    raw_session_type = attendance.session_type or "Theory"
+    if raw_session_type in ("Lecture", "lecture"): normalized_session_type = "Theory"
+    elif raw_session_type in ("Lab", "lab"): normalized_session_type = "Practical"
+    else: normalized_session_type = raw_session_type
+
+    # Build name_lookup dict from all student profiles (roll_number -> name)
+    all_sp_res = await db.execute(
+        select(StudentProfile, User).join(User, StudentProfile.user_id == User.id)
+    )
+    name_lookup = {
+        str(sp.roll_number): f"{u.first_name} {u.last_name}"
+        for sp, u in all_sp_res.all()
+    }
+
+    # We no longer generate the Excel sheet synchronously here.
+    # It is generated on-the-fly when requested via the /excel/subject endpoint.
     
     return StandardResponse(
         success=True,
@@ -223,12 +253,18 @@ async def get_defaulters(
     - Below 50%: Critical
     """
     # Fetch all lectures with their class name and subject name
-    lectures_query = await db.execute(
+    query = (
         select(LectureAttendance, Class.name, Subject.name)
         .join(Class, LectureAttendance.class_id == Class.id)
         .join(Subject, LectureAttendance.subject_id == Subject.id)
-        .order_by(Class.name, Subject.name, LectureAttendance.lecture_date)
     )
+    
+    if current_user.role == RoleEnum.FACULTY:
+        query = query.where(LectureAttendance.faculty_id == current_user.id)
+        
+    query = query.order_by(Class.name, Subject.name, LectureAttendance.lecture_date)
+    
+    lectures_query = await db.execute(query)
     lectures = lectures_query.all()
 
     if not lectures:
@@ -397,3 +433,135 @@ def broadcast_defaulter_list(
         data=DefaulterListResponse.model_validate(defaulter_list),
         error=None
     )
+
+@router.get("/excel/master")
+async def download_master_excel(class_name: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(allow_faculty_hod)):
+    # Fetch all lectures for this class
+    lectures_query = await db.execute(
+        select(LectureAttendance, Class.name, Subject.name)
+        .join(Class, LectureAttendance.class_id == Class.id)
+        .join(Subject, LectureAttendance.subject_id == Subject.id)
+        .where(Class.name == class_name)
+        .order_by(Class.name, Subject.name, LectureAttendance.lecture_date)
+    )
+    lectures = lectures_query.all()
+
+    class_data = {}
+    for lecture, c_name, subject_name in lectures:
+        key = f"{c_name} - {subject_name}"
+        if key not in class_data:
+            class_data[key] = {
+                "total_theory": 0,
+                "total_practical": 0,
+                "absentees": {},
+                "class_name": c_name,
+                "subject_name": subject_name
+            }
+            
+        session_type = lecture.session_type or "Theory"
+        if session_type == "Lecture": session_type = "Theory"
+            
+        if session_type == "Theory":
+            class_data[key]["total_theory"] += 1
+        else:
+            class_data[key]["total_practical"] += 1
+
+        absentees = lecture.absentee_roll_numbers or []
+        for roll in absentees:
+            roll = str(roll).strip()
+            if roll:
+                if roll not in class_data[key]["absentees"]:
+                    class_data[key]["absentees"][roll] = {"Theory": 0, "Practical": 0}
+                class_data[key]["absentees"][roll][session_type] += 1
+
+    students_res = await db.execute(
+        select(StudentProfile, User)
+        .join(User, StudentProfile.user_id == User.id)
+        .where(StudentProfile.division == class_name)
+    )
+    students = students_res.all()
+    students_list = [
+        {"roll_number": sp.roll_number, "name": f"{u.first_name} {u.last_name}"}
+        for sp, u in students
+    ]
+    try:
+        excel_bytes = excel_sync_agent.generate_master_sheet(class_name, students_list, class_data)
+        return Response(
+            content=excel_bytes,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename=Master_Attendance_{class_name}.xlsx"}
+        )
+    except Exception as e:
+        import traceback
+        with open("error.log", "a") as f:
+            f.write(f"Master Excel Generate Error:\\n{traceback.format_exc()}\\n")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/excel/subject")
+async def download_subject_excel(class_name: str, subject_name: str, faculty_name: str, session_type: str, db: AsyncSession = Depends(get_db)):
+    # Fetch all historical lectures for this specific grouping
+    all_res = await db.execute(
+        select(LectureAttendance, Class.name, Subject.name, User.first_name, User.last_name)
+        .join(Class, LectureAttendance.class_id == Class.id)
+        .join(Subject, LectureAttendance.subject_id == Subject.id)
+        .join(User, LectureAttendance.faculty_id == User.id)
+        .where(
+            Class.name == class_name,
+            Subject.name == subject_name,
+        )
+        .order_by(LectureAttendance.lecture_date)
+    )
+    all_lectures = all_res.all()
+    
+    # Filter by exact faculty and session type
+    filtered_lectures = []
+    total_students_enrolled = 0
+    for lec, c_name, s_name, f_first, f_last in all_lectures:
+        raw_st = lec.session_type or "Theory"
+        if raw_st in ("Lecture", "lecture"): raw_st = "Theory"
+        elif raw_st in ("Lab", "lab"): raw_st = "Practical"
+        
+        f_name = f"{f_first} {f_last}"
+        if f_name == faculty_name and raw_st == session_type:
+            filtered_lectures.append({
+                "lecture_date": lec.lecture_date,
+                "time_slot": lec.time_slot,
+                "absentee_roll_numbers": lec.absentee_roll_numbers or []
+            })
+            if lec.total_students_enrolled > total_students_enrolled:
+                total_students_enrolled = lec.total_students_enrolled
+                
+    if not filtered_lectures:
+        raise HTTPException(status_code=404, detail="No attendance records found for this subject.")
+        
+    # Fetch all students indexed by division for name lookup
+    all_students_res = await db.execute(
+        select(StudentProfile, User).join(User, StudentProfile.user_id == User.id)
+    )
+    name_lookup = {
+        str(sp.roll_number): f"{u.first_name} {u.last_name}"
+        for sp, u in all_students_res.all()
+    }
+    
+    try:
+        excel_bytes = excel_sync_agent.generate_subject_sheet(
+            all_lectures_data=filtered_lectures,
+            name_lookup=name_lookup,
+            faculty_name=faculty_name,
+            class_name=class_name,
+            subject_name=subject_name,
+            session_type=session_type,
+            total_students=total_students_enrolled
+        )
+        filename = f"{subject_name}_{faculty_name}_{session_type}.xlsx".replace(" ", "_")
+        return Response(
+            content=excel_bytes,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    except Exception as e:
+        import traceback
+        with open("error.log", "a") as f:
+            f.write(f"Subject Excel Generate Error:\\n{traceback.format_exc()}\\n")
+        raise HTTPException(status_code=500, detail=str(e))
+
