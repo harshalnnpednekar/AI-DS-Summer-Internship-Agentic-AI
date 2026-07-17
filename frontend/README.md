@@ -45,7 +45,8 @@ The application dynamically alters its UI based on the authenticated user's role
 We have moved away from basic dashboards to highly descriptive, workflow-driven UI blocks.
 - **Vertical Step-by-Step UI**: The Defaulter Management page now includes a dedicated vertical workflow explaining exactly how attendance is calculated, replacing vague explanations with detailed, inline-bolded text and circular badges.
 - **Data Granularity**: Displays separate columns for Theory, Practical, and Total attendance, natively ignoring missing practicals for students without them (N/A).
-- **Dynamic Attendance Tracking UI**: Features a robust, native collapsible dropdown (accordion) layout that sorts attendance records by Academic Year (FE, SE, TE, BE), Class, and Faculty, keeping dashboards perfectly organized.
+- **Dynamic Attendance Tracking UI**: Features a robust, native collapsible HTML5 dropdown (accordion) layout that sorts attendance records intelligently by Academic Year (FE, SE, TE, BE), Class, and Faculty. It also dynamically adapts the view structure based on whether the logged-in user is an HOD or a Faculty member to remove redundant groupings.
+- **Bulk Email Broadcast**: Integrates a seamless UI for selecting multiple defaulter students and dispatching warning emails to them in a single action directly from the dashboard.
 - **Form Validation Constraints**: Validates absentee inputs dynamically to ensure integrity during attendance entry, while allowing optional lecture topics for smoother workflow.
 
 ### 3. Enterprise-Grade PDF Engine (`exportToPDF`)

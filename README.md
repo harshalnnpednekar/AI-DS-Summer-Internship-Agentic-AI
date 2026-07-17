@@ -47,6 +47,8 @@ Managing student attendance is simplified through an intuitive upload and proces
 - **Edge-case Handling**: Accurately processes instances where practical attendance is "N/A", adjusting the denominator dynamically to prevent skewed percentages.
 - **Defaulter Identification**: Automatically flags students whose cumulative attendance falls below the customizable departmental threshold (e.g., 75%), categorizing them into standard and "Critical" risk levels.
 - **Dynamic Excel Generation**: Constructs fully formatted Master and Subject-specific Excel sheets dynamically in-memory and streams them directly to the client, removing any local filesystem clutter and ensuring data is always real-time.
+- **Role-Based Defaulter Views**: Strictly enforces Role-Based Access Control (RBAC). Faculty members can securely view and manage defaulters strictly for the lectures they have conducted, while HODs maintain a panoramic view of all defaulters across the department.
+- **Collapsible Accordion UI**: Attendance sheets and defaulter stats are intelligently grouped by Academic Year (FE, SE, TE, BE), Class, and Faculty, leveraging native HTML5 `<details>` for a clean, clutter-free dashboard experience that adapts intelligently based on the user's role.
 
 ### 3. Automated Notification Agent
 OmniSync doesn't just store data; it actively works for you in the background.

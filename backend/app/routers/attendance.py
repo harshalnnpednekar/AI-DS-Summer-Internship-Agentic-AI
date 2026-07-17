@@ -259,7 +259,7 @@ async def get_defaulters(
         .join(Subject, LectureAttendance.subject_id == Subject.id)
     )
     
-    if current_user.role == RoleEnum.FACULTY:
+    if getattr(current_user.role, 'value', current_user.role) == "FACULTY" or getattr(current_user.role, 'name', '') == "FACULTY" or current_user.role == RoleEnum.FACULTY:
         query = query.where(LectureAttendance.faculty_id == current_user.id)
         
     query = query.order_by(Class.name, Subject.name, LectureAttendance.lecture_date)

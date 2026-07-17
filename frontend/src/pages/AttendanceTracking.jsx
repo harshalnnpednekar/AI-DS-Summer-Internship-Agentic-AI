@@ -145,11 +145,8 @@ const AttendanceTracking = () => {
                   <span style={{ fontSize: '1.2rem', color: 'var(--color-text-secondary)' }}>▹</span> {className}
                 </summary>
                 <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {Object.keys(grouped[className]).sort().map(facultyName => (
-                    <details key={facultyName} style={{ border: '1px solid #e2e8f0', borderRadius: '6px', background: '#f8fafc' }}>
-                      <summary style={{ padding: '0.75rem 1rem', fontWeight: 600, cursor: 'pointer', borderBottom: '1px solid #e2e8f0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ fontSize: '1rem', color: 'var(--color-text-secondary)' }}>▹</span> Faculty: {facultyName}
-                      </summary>
+                  {Object.keys(grouped[className]).sort().map(facultyName => {
+                    const facultyContent = (
                       <div style={{ padding: '1rem', display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
                         {grouped[className][facultyName].map((stat, idx) => (
                           <div key={idx} style={{ padding: '1rem', border: '1px solid var(--color-border)', borderRadius: '8px', minWidth: '250px', background: '#fff', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
@@ -165,8 +162,22 @@ const AttendanceTracking = () => {
                           </div>
                         ))}
                       </div>
-                    </details>
-                  ))}
+                    );
+                    
+                    const role = localStorage.getItem('userRole');
+                    if (role === 'FACULTY') {
+                      return <React.Fragment key={facultyName}>{facultyContent}</React.Fragment>;
+                    }
+
+                    return (
+                      <details key={facultyName} style={{ border: '1px solid #e2e8f0', borderRadius: '6px', background: '#f8fafc' }}>
+                        <summary style={{ padding: '0.75rem 1rem', fontWeight: 600, cursor: 'pointer', borderBottom: '1px solid #e2e8f0', listStyle: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '1rem', color: 'var(--color-text-secondary)' }}>▹</span> Faculty: {facultyName}
+                        </summary>
+                        {facultyContent}
+                      </details>
+                    );
+                  })}
                 </div>
               </details>
             ));

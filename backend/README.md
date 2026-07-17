@@ -9,6 +9,7 @@ This directory contains the robust, asynchronous REST API that powers the OmniSy
 - **Alembic Migrations**: Maintains a strict, version-controlled history of database schema changes, ensuring reproducible deployments across environments.
 - **APScheduler Integration**: We replaced basic background tasks with the Advanced Python Scheduler (specifically `AsyncIOScheduler`) to execute recurring background tasks—namely, monitoring upcoming academic deadlines and dispatching email notifications continuously every 5 minutes without blocking the main event loop.
 - **Modular Routing**: API endpoints are logically segmented into routers (`users.py`, `events.py`, `attendance.py`, `auth.py`), adhering to strict Separation of Concerns (SoC).
+- **Role-Based Access Control (RBAC)**: Enforces strict data access rules across endpoints. For example, Defaulter Lists and Attendance Stats are dynamically filtered at the database level so Faculty only receive data for lectures they conducted, whereas HODs can view data across the entire department.
 
 ## 🗂️ Directory Structure
 

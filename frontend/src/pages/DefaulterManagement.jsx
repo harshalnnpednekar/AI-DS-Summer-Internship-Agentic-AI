@@ -9,7 +9,7 @@ import './DefaulterManagement.css';
 const DefaulterManagement = () => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [collapsedClasses, setCollapsedClasses] = useState({});
+  const [openClasses, setOpenClasses] = useState({});
   const [toast, setToast] = useState(null);
 
   const showToast = (message, type = 'success') => {
@@ -46,7 +46,7 @@ const DefaulterManagement = () => {
   };
 
   const toggleClass = (className) => {
-    setCollapsedClasses(prev => ({ ...prev, [className]: !prev[className] }));
+    setOpenClasses(prev => ({ ...prev, [className]: !prev[className] }));
   };
 
   // Group students by class, preserving sort order
@@ -384,7 +384,7 @@ const DefaulterManagement = () => {
             </div>
           ) : (
             Object.entries(grouped).map(([className, classStudents]) => {
-              const isCollapsed = collapsedClasses[className];
+              const isCollapsed = !openClasses[className];
               const criticalCount = classStudents.filter(s => s.status === 'Critical').length;
               const atRiskCount = classStudents.filter(s => s.status === 'At Risk').length;
 
