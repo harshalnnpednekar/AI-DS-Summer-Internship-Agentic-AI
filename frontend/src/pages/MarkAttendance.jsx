@@ -12,6 +12,7 @@ const MarkAttendance = () => {
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [timeSlot, setTimeSlot] = useState('');
   const [sessionType, setSessionType] = useState('Theory');
+  const [semester, setSemester] = useState('');
   
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
@@ -63,6 +64,43 @@ const MarkAttendance = () => {
       setStudentsPresent('');
     }
   }, [totalStudents, absentees]);
+
+  useEffect(() => {
+    if (!selectedClass || !date || classes.length === 0) {
+      setSemester('');
+      return;
+    }
+    const cls = classes.find(c => c.id === selectedClass);
+    if (!cls) return;
+    
+    const className = cls.name.toUpperCase();
+    let year = 0;
+    if (className.includes('FE') || className.includes('FIRST')) year = 1;
+    else if (className.includes('SE') || className.includes('SECOND')) year = 2;
+    else if (className.includes('TE') || className.includes('THIRD')) year = 3;
+    else if (className.includes('BE') || className.includes('FOURTH')) year = 4;
+    
+    if (year === 0) {
+      setSemester('');
+      return;
+    }
+    
+    const dateObj = new Date(date);
+    const month = dateObj.getMonth();
+    // Jan (0) to Jun (5) is Even Sem (2, 4, 6, 8)
+    // Jul (6) to Dec (11) is Odd Sem (1, 3, 5, 7)
+    const isEvenSem = month >= 0 && month <= 5;
+    const semNumber = isEvenSem ? (year * 2) : (year * 2 - 1);
+    
+    const getOrdinal = (n) => {
+      if (n === 1) return '1st';
+      if (n === 2) return '2nd';
+      if (n === 3) return '3rd';
+      return n + 'th';
+    };
+    
+    setSemester(`${getOrdinal(semNumber)} Semester`);
+  }, [selectedClass, date, classes]);
 
   const handleClassChange = (e) => {
     const val = e.target.value;
@@ -244,6 +282,20 @@ const MarkAttendance = () => {
                 </select>
               </div>
               <div className="form-group half">
+                <label>Semester</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  placeholder="Auto-calculated" 
+                  value={semester} 
+                  readOnly
+                  style={{ backgroundColor: '#f8fafc', color: '#64748b', cursor: 'not-allowed' }}
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group" style={{ width: '100%' }}>
                 <label>Lecture Topic / Module</label>
                 <input 
                   type="text" 
