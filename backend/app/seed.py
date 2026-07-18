@@ -193,14 +193,16 @@ async def seed():
                 new_sub = Subject(
                     code=sub_data["code"],
                     name=sub_data["name"],
+                    year_level={"FE": 1, "SE": 2, "TE": 3, "BE": 4}[sub_data["year"]],
                     semester=sub_data["semester"],
                     department_id=str(aids_dept.id),
                 )
                 db.add(new_sub)
                 logger.info(f"Created Subject: {sub_data['code']}")
             else:
-                existing.name     = sub_data["name"]
-                existing.semester = sub_data["semester"]
+                existing.name       = sub_data["name"]
+                existing.year_level = {"FE": 1, "SE": 2, "TE": 3, "BE": 4}[sub_data["year"]]
+                existing.semester   = sub_data["semester"]
                 logger.info(f"Exists  Subject: {sub_data['code']}")
         await db.flush()
 
