@@ -1,14 +1,18 @@
 import sys
 import asyncio
+import selectors
 
 # Windows + Python 3.12+ uses ProactorEventLoop by default, which is
-# incompatible with psycopg async. Force SelectorEventLoop on Windows.
+# incompatible with psycopg async. Replace the running loop with a
+# SelectorEventLoop before any DB connections are made.
 if sys.platform == "win32":
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    _selector = selectors.SelectSelector()
+    _loop = asyncio.SelectorEventLoop(_selector)
+    asyncio.set_event_loop(_loop)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import events, auth, attendance, users, subjects
+from app.routers import events, auth, attendance, users, subjects, certificates
 import logging
 from contextlib import asynccontextmanager
 
@@ -21,12 +25,12 @@ logger = logging.getLogger(__name__)
 scheduler_manager = SchedulerManager()
 notification_workflow = NotificationWorkflow()
 
-async def send_notification_callback(event, users):
+async def send_notification_callback(event, users_list):
     logger.info(f"Processing event: {event.get('title')}")
-    result = await notification_workflow.process_event(event, users)
+    result = await notification_workflow.process_event(event, users_list)
     
     if result.get("status") == "logged":
-        logger.info(f"Notification prepared for {len(users)} users")
+        logger.info(f"Notification prepared for {len(users_list)} users")
     else:
         logger.error(f"Failed to process event: {result.get('error')}")
 
@@ -43,9 +47,9 @@ async def lifespan(app: FastAPI):
     scheduler_manager.stop()
 
 app = FastAPI(
-    title="EduAgent Event Notification API",
-    description="Backend for college event notification system",
-    version="1.0.0",
+    title="EduAgent API",
+    description="Backend for the College Academic and Event Notification System",
+    version="2.0.0",
     lifespan=lifespan
 )
 
@@ -62,9 +66,12 @@ app.include_router(auth.router)
 app.include_router(attendance.router)
 app.include_router(users.router)
 app.include_router(subjects.router)
+app.include_router(certificates.router)
 
 @app.get("/")
 async def health_check():
-    # Trigger reload
-    return {"status": "ok", "message": "EduAgent API is running"}
+    return {"status": "ok", "message": "EduAgent API v2.0 is running"}
 
+@app.get("/health")
+async def health():
+    return {"status": "ok", "version": "2.0.0"}

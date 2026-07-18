@@ -114,21 +114,23 @@ const Dashboard = () => {
       </div>
 
       <div className="quick-actions-grid">
-        <div className="card action-card">
-          <div className="action-icon text-primary">
-            <Edit size={24} />
+        {userInfo.role !== 'STUDENT' && (
+          <div className="card action-card">
+            <div className="action-icon text-primary">
+              <Edit size={24} />
+            </div>
+            <h3>Mark Attendance</h3>
+            <p>Submit today's lecture attendance record</p>
+            <button className="btn-text action-link" onClick={() => navigate('/mark-attendance')}>Open &gt;</button>
           </div>
-          <h3>Mark Attendance</h3>
-          <p>Submit today's lecture attendance record</p>
-          <button className="btn-text action-link" onClick={() => navigate('/mark-attendance')}>Open &gt;</button>
-        </div>
+        )}
 
         <div className="card action-card">
           <div className="action-icon text-secondary">
             <Users size={24} />
           </div>
-          <h3>Attendance Data</h3>
-          <p>{userInfo.role === 'HOD' ? 'View attendance stats for department classes' : 'View attendance stats for your classes'}</p>
+          <h3>{userInfo.role === 'HOD' ? 'Attendance Data' : userInfo.role === 'STUDENT' ? 'My Attendance' : 'My Attendance Data'}</h3>
+          <p>{userInfo.role === 'HOD' ? 'View attendance stats for department classes' : userInfo.role === 'STUDENT' ? 'View your attendance records' : 'View attendance stats for your classes'}</p>
           <button className="btn-text action-link" onClick={() => navigate('/attendance-data')}>Open &gt;</button>
         </div>
 
@@ -136,10 +138,21 @@ const Dashboard = () => {
           <div className="action-icon" style={{ color: '#8B5CF6' }}>
             <Calendar size={24} />
           </div>
-          <h3>Academic Calendar</h3>
+          <h3>{userInfo.role === 'STUDENT' ? 'Upcoming Events' : 'Academic Calendar'}</h3>
           <p>View upcoming deadlines and events</p>
           <button className="btn-text action-link" onClick={() => navigate('/calendar')}>Open &gt;</button>
         </div>
+
+        {userInfo.role === 'STUDENT' && (
+          <div className="card action-card">
+            <div className="action-icon" style={{ color: '#f59e0b' }}>
+              <CheckCircle2 size={24} />
+            </div>
+            <h3>My Certificates</h3>
+            <p>Upload and track your achievement certificates</p>
+            <button className="btn-text action-link" onClick={() => navigate('/certificates')}>Open &gt;</button>
+          </div>
+        )}
       </div>
 
       <div className="card table-card">

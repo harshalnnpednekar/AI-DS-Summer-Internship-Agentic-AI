@@ -3,11 +3,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from ..database import get_db
-from ..models import User, FacultyProfile, StudentProfile, RoleEnum
-from ..auth import verify_password, create_access_token, get_password_hash
-from ..config import settings
-from ..schemas import StandardResponse, Token, UserSignup, ProfileUpdate
+from sqlalchemy.orm import selectinload
+from app.database import get_db
+from app.models import User, FacultyProfile, StudentProfile, RoleEnum, Department
+from app.auth import verify_password, create_access_token
+from app.config import settings
+from app.schemas import StandardResponse, UserSignup, ProfileUpdate, UserResponse
+from app.services.auth_service import register_user
+from app.dependencies.auth import get_current_active_user
 
 router = APIRouter(
     prefix="/api/auth",
@@ -16,7 +19,7 @@ router = APIRouter(
 
 @router.post("/login", response_model=StandardResponse)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email == form_data.username))
+    result = await db.execute(select(User).where(User.email == form_data.username.lower()))
     user = result.scalars().first()
     if not user or not verify_password(form_data.password, user.password_hash):
         return StandardResponse(
@@ -27,7 +30,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
     
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.email, "role": user.role}, expires_delta=access_token_expires
+        data={"sub": user.email, "role": user.role.value}, expires_delta=access_token_expires
     )
     
     return StandardResponse(
@@ -40,121 +43,59 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
                 "email": user.email,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
-                "role": user.role
+                "role": user.role.value.upper()
             }
         }
     )
 
 @router.post("/signup", response_model=StandardResponse)
 async def signup(user_data: UserSignup, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email == user_data.email))
-    existing_user = result.scalars().first()
-    if existing_user:
-        return StandardResponse(
-            success=False,
-            data=None,
-            error="Email already registered"
-        )
-        
-    new_user = User(
-        email=user_data.email,
-        password_hash=get_password_hash(user_data.password),
-        first_name=user_data.first_name,
-        last_name=user_data.last_name,
-        role=user_data.role
-    )
-    db.add(new_user)
-    await db.commit()
-    await db.refresh(new_user)
-    
-    if user_data.role in [RoleEnum.FACULTY, RoleEnum.HOD]:
-        profile = FacultyProfile(
-            user_id=new_user.id,
-            department=user_data.department or "General",
-            designation=user_data.designation or ("HOD" if user_data.role == RoleEnum.HOD else "Faculty"),
-            assigned_classes=user_data.assigned_classes,
-            phone=user_data.phone,
-            bio=user_data.bio,
-            joining_year=user_data.joining_year
-        )
-        db.add(profile)
-    elif user_data.role == RoleEnum.STUDENT:
-        profile = StudentProfile(
-            user_id=new_user.id,
-            roll_number=user_data.roll_number or f"TMP-{new_user.id}",
-            department=user_data.department or "General",
-            current_semester=user_data.current_semester or "1",
-            division=user_data.division or "A",
-            phone=user_data.phone,
-            bio=user_data.bio,
-            joining_year=user_data.joining_year
-        )
-        db.add(profile)
-        
-    await db.commit()
-    
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": new_user.email, "role": new_user.role}, expires_delta=access_token_expires
-    )
-    
-    return StandardResponse(
-        success=True,
-        data={
-            "access_token": access_token,
-            "token_type": "bearer",
-            "user": {
-                "id": str(new_user.id),
-                "email": new_user.email,
-                "first_name": new_user.first_name,
-                "last_name": new_user.last_name,
-                "role": new_user.role
-            }
-        }
-    )
+    return await register_user(db, user_data)
 
 @router.post("/logout", response_model=StandardResponse)
 def logout():
-    # Since we are using stateless JWT, we just tell the client to remove the token.
     return StandardResponse(
         success=True,
         data={"message": "Logged out successfully. Please remove your token."},
         error=None
     )
 
-from ..dependencies import get_current_active_user
-
 @router.get("/me", response_model=StandardResponse)
 async def get_me(current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)):
     profile_data = {}
-    if current_user.role in [RoleEnum.HOD, RoleEnum.FACULTY]:
+    
+    if current_user.role in [RoleEnum.hod, RoleEnum.faculty]:
         profile_result = await db.execute(
-            select(FacultyProfile).where(FacultyProfile.user_id == current_user.id)
+            select(FacultyProfile)
+            .options(selectinload(FacultyProfile.department))
+            .where(FacultyProfile.user_id == current_user.id)
         )
         profile = profile_result.scalars().first()
         if profile:
             profile_data = {
-                "department": profile.department,
+                "department": profile.department.code,
                 "designation": profile.designation,
-                "assigned_classes": profile.assigned_classes,
-                "phone": profile.phone,
-                "bio": profile.bio,
-                "joining_year": profile.joining_year,
+                "assigned_classes": None, # Will be handled by class_subjects mappings
+                "phone": profile.phone if hasattr(profile, 'phone') else None,
+                "bio": profile.bio if hasattr(profile, 'bio') else None,
+                "joining_year": profile.joining_year if hasattr(profile, 'joining_year') else None,
             }
-    elif current_user.role == RoleEnum.STUDENT:
+    elif current_user.role == RoleEnum.student:
         profile_result = await db.execute(
-            select(StudentProfile).where(StudentProfile.user_id == current_user.id)
+            select(StudentProfile)
+            .options(selectinload(StudentProfile.department))
+            .where(StudentProfile.user_id == current_user.id)
         )
         profile = profile_result.scalars().first()
         if profile:
             profile_data = {
-                "department": profile.department,
+                "department": profile.department.code,
                 "roll_number": profile.roll_number,
-                "current_semester": profile.current_semester,
-                "division": profile.division,
-                "phone": profile.phone,
-                "bio": profile.bio,
-                "joining_year": profile.joining_year,
+                "current_semester": "1", # Default value, updated via enrollment
+                "division": "A", # Default value, updated via enrollment
+                "phone": profile.phone if hasattr(profile, 'phone') else None,
+                "bio": profile.bio if hasattr(profile, 'bio') else None,
+                "joining_year": str(profile.admission_year),
             }
 
     return StandardResponse(
@@ -164,7 +105,7 @@ async def get_me(current_user: User = Depends(get_current_active_user), db: Asyn
             "email": current_user.email,
             "first_name": current_user.first_name,
             "last_name": current_user.last_name,
-            "role": current_user.role,
+            "role": current_user.role.value.upper(),
             "created_at": current_user.created_at.isoformat(),
             **profile_data
         },
@@ -177,49 +118,44 @@ async def update_me(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
-    # Update basic user fields
     if profile_data.first_name is not None:
         current_user.first_name = profile_data.first_name
     if profile_data.last_name is not None:
         current_user.last_name = profile_data.last_name
     
-    # Update role-specific profile fields
-    if current_user.role in [RoleEnum.HOD, RoleEnum.FACULTY]:
+    if current_user.role in [RoleEnum.hod, RoleEnum.faculty]:
         profile_result = await db.execute(
             select(FacultyProfile).where(FacultyProfile.user_id == current_user.id)
         )
         profile = profile_result.scalars().first()
         if profile:
-            if profile_data.phone is not None: profile.phone = profile_data.phone
-            if profile_data.bio is not None: profile.bio = profile_data.bio
-            if profile_data.designation is not None: profile.designation = profile_data.designation
-            if profile_data.department is not None: profile.department = profile_data.department
-            if profile_data.assigned_classes is not None: profile.assigned_classes = profile_data.assigned_classes
-            if profile_data.joining_year is not None: profile.joining_year = profile_data.joining_year
+            if profile_data.phone is not None and hasattr(profile, 'phone'): profile.phone = profile_data.phone
+            if profile_data.bio is not None and hasattr(profile, 'bio'): profile.bio = profile_data.bio
+            if profile_data.designation is not None and hasattr(profile, 'designation'): profile.designation = profile_data.designation
+            if profile_data.department is not None and hasattr(profile, 'department'): profile.department = profile_data.department
+            if profile_data.assigned_classes is not None and hasattr(profile, 'assigned_classes'): profile.assigned_classes = profile_data.assigned_classes
+            if profile_data.joining_year is not None and hasattr(profile, 'joining_year'): profile.joining_year = profile_data.joining_year
     
-    elif current_user.role == RoleEnum.STUDENT:
+    elif current_user.role == RoleEnum.student:
         profile_result = await db.execute(
             select(StudentProfile).where(StudentProfile.user_id == current_user.id)
         )
         profile = profile_result.scalars().first()
         if profile:
-            if profile_data.phone is not None: profile.phone = profile_data.phone
-            if profile_data.bio is not None: profile.bio = profile_data.bio
-            if profile_data.department is not None: profile.department = profile_data.department
-            if profile_data.joining_year is not None: profile.joining_year = profile_data.joining_year
+            if profile_data.phone is not None and hasattr(profile, 'phone'): profile.phone = profile_data.phone
+            if profile_data.bio is not None and hasattr(profile, 'bio'): profile.bio = profile_data.bio
+            if profile_data.department is not None and hasattr(profile, 'department'): profile.department = profile_data.department
+            if profile_data.joining_year is not None and hasattr(profile, 'joining_year'): profile.joining_year = profile_data.joining_year
 
     await db.commit()
     return StandardResponse(success=True, data={"message": "Profile updated successfully"}, error=None)
-
-
 
 @router.post("/repair-profile", response_model=StandardResponse)
 async def repair_profile(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Creates a missing faculty_profile row for HOD/Faculty users who registered before the fix."""
-    if current_user.role not in [RoleEnum.HOD, RoleEnum.FACULTY]:
+    if current_user.role not in [RoleEnum.hod, RoleEnum.faculty]:
         return StandardResponse(success=False, data=None, error="Only HOD/Faculty accounts need profiles.")
 
     existing = await db.execute(
@@ -228,11 +164,19 @@ async def repair_profile(
     if existing.scalars().first():
         return StandardResponse(success=True, data={"message": "Profile already exists."}, error=None)
 
+    dept_result = await db.execute(select(Department).where(Department.code == "AIDS"))
+    dept = dept_result.scalars().first()
+    if not dept:
+        dept = Department(code="AIDS", name="Artificial Intelligence and Data Science")
+        db.add(dept)
+        await db.flush()
+
     profile = FacultyProfile(
         user_id=current_user.id,
-        department="AIDS",
-        designation="HOD" if current_user.role == RoleEnum.HOD else "Faculty",
-        assigned_classes=None
+        department_id=dept.id,
+        designation="HOD" if current_user.role == RoleEnum.hod else "Faculty",
+        employee_code=None,
+        full_name=f"{current_user.first_name} {current_user.last_name}"
     )
     db.add(profile)
     await db.commit()

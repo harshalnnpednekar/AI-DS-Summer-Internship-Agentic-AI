@@ -10,7 +10,8 @@ import {
   Settings, 
   LogOut,
   Edit,
-  Cpu
+  Cpu,
+  Award
 } from 'lucide-react';
 import './Layout.css';
 
@@ -115,7 +116,7 @@ const Layout = () => {
             </NavLink>
             <NavLink to="/calendar" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
               <Calendar size={20} />
-              <span>Academic Calendar</span>
+              <span>{userInfo.role === 'STUDENT' ? 'Upcoming Events' : 'Academic Calendar'}</span>
             </NavLink>
             {userInfo.role !== 'STUDENT' && (
               <NavLink to="/attendance-data" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
