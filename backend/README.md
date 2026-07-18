@@ -194,6 +194,8 @@ The backend exposes a comprehensive set of RESTful endpoints prefixed with `/api
 | `POST` | `/submit` | Accepts CSV/Excel files to bulk upload attendance records | Yes (Faculty) |
 | `GET`  | `/stats` | Retrieves aggregated attendance statistics for dashboard charts | Yes |
 | `POST` | `/generate` | Generates a defaulter list based on a minimum threshold | Yes (HOD/Faculty) |
+| `GET`  | `/defaulters` | Computes defaulter statistics from actual lecture attendance records | Yes (HOD/Faculty) |
+| `POST` | `/defaulters/broadcast` | Simulates broadcasting emails to defaulters computed from lectures | Yes (HOD/Faculty) |
 | `POST` | `/broadcast/{list_id}`| Dispatches warning emails to all students on a specific defaulter list | Yes (HOD/Faculty) |
 | `GET`  | `/excel/subject` | Generates an in-memory Subject Excel sheet and streams it back to client | Yes |
 | `GET`  | `/excel/master`  | Generates an in-memory Master Excel sheet and streams it back to client | Yes |
@@ -203,6 +205,15 @@ The backend exposes a comprehensive set of RESTful endpoints prefixed with `/api
 |---|---|---|---|
 | `GET`  | `/` | Retrieves a list of users | Yes (Faculty) |
 | `GET`  | `/department/{department}` | Retrieves all users belonging to a specific department | Yes (HOD) |
+
+### Subjects (`/api/subjects`)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET`  | `/` | Retrieves a list of subjects, optionally filtered by year/semester | No |
+| `POST` | `/` | Creates a new subject | Yes (HOD/Faculty) |
+| `GET`  | `/faculty` | Retrieves subjects mapped to the currently authenticated faculty | Yes (HOD/Faculty) |
+| `POST` | `/faculty/map/{subject_id}`| Maps a subject and class to the authenticated faculty | Yes (HOD/Faculty) |
+| `DELETE` | `/faculty/map/{subject_id}`| Unmaps a subject from the authenticated faculty | Yes (HOD/Faculty) |
 
 ## 🚀 Getting Started
 

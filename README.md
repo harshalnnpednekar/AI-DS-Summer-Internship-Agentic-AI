@@ -121,6 +121,25 @@ CREATE DATABASE event_notification_db;
 
 ---
 
+## 📚 API Endpoints & Database Tables
+
+The application relies on a comprehensive PostgreSQL database schema and RESTful API endpoints. For exhaustive details, refer to `backend/README.md`.
+
+### Core Database Tables
+- **Users & Profiles**: `users`, `faculty_profiles`, `student_profiles`
+- **Academic Setup**: `classes`, `subjects`, `faculty_subject_mappings`
+- **Attendance Tracking**: `attendances`, `lecture_attendances`, `defaulter_lists`
+- **Events & Notifications**: `events`, `send_logs`
+
+### Key API Domains
+- **`/api/auth`**: User authentication, login, and registration.
+- **`/api/events`**: Calendar parsing, event creation, and broadcast logs.
+- **`/api/attendance`**: Lecture tracking, dashboard statistics, Excel generation, and defaulter generation (`/defaulters`, `/defaulters/broadcast`).
+- **`/api/subjects`**: Academic subject management and faculty mapping.
+- **`/api/users`**: User discovery and departmental filtering.
+
+---
+
 ## 🛡️ Security & Access Control
 
 OmniSync enforces strict security paradigms to protect sensitive academic data:
