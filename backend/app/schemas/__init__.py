@@ -8,7 +8,7 @@ from app.schemas.student import (
     EnrollmentBase, EnrollmentCreate, EnrollmentResponse
 )
 from app.schemas.faculty import FacultyProfileBase, FacultyProfileCreate, FacultyProfileResponse
-from app.schemas.subject import SubjectBase, SubjectCreate, SubjectResponse, ClassSubjectBase, ClassSubjectCreate, ClassSubjectResponse
+from app.schemas.subject import SubjectBase, SubjectCreate, SubjectUpdate, SubjectResponse, ClassSubjectBase, ClassSubjectCreate, ClassSubjectResponse
 from app.schemas.attendance import AcademicYearEnum, SemesterEnum, LectureAttendanceSubmit, AttendanceBase, AttendanceCreate, AttendanceResponse
 from app.schemas.grade import GradeBase, GradeCreate, GradeResponse
 from app.schemas.kt import KTRecordBase, KTRecordCreate, KTRecordResponse
@@ -23,7 +23,7 @@ __all__ = [
     "StudentProfileBase", "StudentProfileCreate", "StudentProfileResponse",
     "EnrollmentBase", "EnrollmentCreate", "EnrollmentResponse",
     "FacultyProfileBase", "FacultyProfileCreate", "FacultyProfileResponse",
-    "SubjectBase", "SubjectCreate", "SubjectResponse", "ClassSubjectBase", "ClassSubjectCreate", "ClassSubjectResponse",
+    "SubjectBase", "SubjectCreate", "SubjectUpdate", "SubjectResponse", "ClassSubjectBase", "ClassSubjectCreate", "ClassSubjectResponse",
     "AcademicYearEnum", "SemesterEnum", "LectureAttendanceSubmit", "AttendanceBase", "AttendanceCreate", "AttendanceResponse",
     "GradeBase", "GradeCreate", "GradeResponse",
     "KTRecordBase", "KTRecordCreate", "KTRecordResponse",

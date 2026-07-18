@@ -59,7 +59,8 @@
 .my-subjects-list li {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 12px;
   background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
   padding: 16px 20px;
   border-radius: 12px;
@@ -74,19 +75,26 @@
   border-color: #cbd5e1;
 }
 
-.my-subjects-list li > div {
+.subject-card-main {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  flex: 1;
 }
 
-.my-subjects-list li strong {
+.subject-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.subject-card-header strong {
   color: #1e293b;
   font-size: 1.05rem;
   font-weight: 600;
 }
 
-.my-subjects-list li .subject-code {
+.subject-code {
   color: #64748b;
   font-size: 0.85rem;
   font-weight: 500;
@@ -96,6 +104,7 @@
   display: flex;
   gap: 8px;
   margin-top: 4px;
+  flex-wrap: wrap;
 }
 
 .badge {
@@ -115,14 +124,49 @@
   color: #475569;
 }
 
+.badge.sem.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge.sem.inactive {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.subject-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-edit,
+.btn-remove,
+.btn-save,
+.btn-cancel {
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-edit {
+  background: #dbeafe;
+  color: #1d4ed8;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.btn-edit:hover {
+  background: #bfdbfe;
+}
+
 .btn-remove {
   background: #fee2e2;
-  border: none;
   color: #ef4444;
-  cursor: pointer;
   padding: 10px;
   border-radius: 50%;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -132,6 +176,79 @@
   background: #ef4444;
   color: white;
   transform: scale(1.1);
+}
+
+.subject-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.edit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.subject-edit-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+.subject-edit-form input,
+.subject-edit-form select {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  color: #0f172a;
+}
+
+.checkbox-label {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.edit-error {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 0.85rem;
+}
+
+.edit-form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-save {
+  background: #2563eb;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.btn-save:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-cancel {
+  background: #e2e8f0;
+  color: #334155;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
 }
 
 .add-subject-section {

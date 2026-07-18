@@ -3,6 +3,8 @@ from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey, U
 from sqlalchemy.orm import relationship
 from app.database import Base
 
+YEAR_LABELS = {1: "FE", 2: "SE", 3: "TE", 4: "BE"}
+
 class Subject(Base):
     __tablename__ = "subjects"
 
@@ -10,6 +12,7 @@ class Subject(Base):
     code = Column(String(50), nullable=False, unique=True, index=True)
     name = Column(String(255), nullable=False)
     department_id = Column(Uuid, ForeignKey("departments.id", ondelete="CASCADE"), nullable=False)
+    year_level = Column(Integer, nullable=False)
     semester = Column(Integer, nullable=False)
     credits = Column(Integer, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
@@ -18,6 +21,11 @@ class Subject(Base):
 
     # Relationships
     department = relationship("Department")
+
+    @property
+    def year(self) -> str:
+        """Frontend-compatible programme year label derived from year_level."""
+        return YEAR_LABELS[self.year_level]
 
 class ClassSubject(Base):
     __tablename__ = "class_subjects"
