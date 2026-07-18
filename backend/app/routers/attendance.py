@@ -9,7 +9,7 @@ from typing import List
 import uuid
 
 from ..database import get_db
-from ..models import User, RoleEnum, Class, Subject, FacultySubjectMapping, LectureAttendance, FacultyProfile
+from ..models import User, RoleEnum, Class, Subject, FacultySubjectMapping, LectureAttendance, FacultyProfile, ClassSubject
 from ..dependencies import get_current_active_user, RoleChecker
 from ..schemas import StandardResponse, LectureAttendanceSubmit
 from app.services.excel_agent.excel_sync import excel_sync_agent
@@ -66,6 +66,25 @@ async def submit_attendance(
     # Security check bypassed as per user request to allow all faculties 
     # to select and submit attendance for all classes/subjects.
 
+    # Derive academic_year and semester from class if not provided
+    class_res = await db.execute(select(Class).where(Class.id == attendance.class_id))
+    class_obj = class_res.scalars().first()
+    
+    if attendance.academic_year is None:
+        # Derive from class's academic_year relationship
+        if class_obj and class_obj.academic_year:
+            academic_year = class_obj.academic_year.name
+        else:
+            academic_year = "2025-2026"  # fallback default
+    else:
+        academic_year = attendance.academic_year.value if hasattr(attendance.academic_year, 'value') else str(attendance.academic_year)
+    
+    if attendance.semester is None:
+        # Derive from class's semester field
+        semester = str(class_obj.semester) if class_obj else "1"
+    else:
+        semester = attendance.semester.value if hasattr(attendance.semester, 'value') else str(attendance.semester)
+
     # Updates can only be executed via HOD administrative override tools. (Immutability enforced by lack of PUT/PATCH)
     new_attendance = LectureAttendance(
         faculty_id=current_user.id,
@@ -77,16 +96,15 @@ async def submit_attendance(
         total_students_enrolled=attendance.total_students_enrolled,
         students_present_count=attendance.students_present_count,
         absentee_roll_numbers=attendance.absentee_roll_numbers,
-        session_type=attendance.session_type
+        session_type=attendance.session_type,
+        academic_year=academic_year,
+        semester=semester,
     )
     db.add(new_attendance)
     await db.commit()
     await db.refresh(new_attendance)
 
-    # Fetch additional data for Excel sync
-    class_res = await db.execute(select(Class).where(Class.id == attendance.class_id))
-    class_obj = class_res.scalars().first()
-    
+    # class_obj already fetched above for academic_year/semester derivation
     subject_res = await db.execute(select(Subject).where(Subject.id == attendance.subject_id))
     subject_obj = subject_res.scalars().first()
     
@@ -262,9 +280,30 @@ async def get_defaulters(
         .join(Subject, LectureAttendance.subject_id == Subject.id)
     )
     
-    if getattr(current_user.role, 'value', current_user.role) == "FACULTY" or getattr(current_user.role, 'name', '') == "FACULTY" or current_user.role == RoleEnum.FACULTY:
-        query = query.where(LectureAttendance.faculty_id == current_user.id)
-        
+    if current_user.role == RoleEnum.FACULTY:
+        # Only show defaulters for class-subject pairs mapped to this faculty
+        faculty_profile_result = await db.execute(
+            select(FacultyProfile).where(FacultyProfile.user_id == current_user.id)
+        )
+        faculty_profile = faculty_profile_result.scalars().first()
+        if not faculty_profile:
+            return StandardResponse(success=True, data=[], error=None)
+
+        mapped_result = await db.execute(
+            select(ClassSubject.class_id, ClassSubject.subject_id)
+            .where(ClassSubject.faculty_id == faculty_profile.id)
+        )
+        mapped_pairs = mapped_result.all()
+        if not mapped_pairs:
+            return StandardResponse(success=True, data=[], error=None)
+        from sqlalchemy import tuple_
+        query = query.where(
+            tuple_(LectureAttendance.class_id, LectureAttendance.subject_id).in_(
+                [(r.class_id, r.subject_id) for r in mapped_pairs]
+            )
+        )
+    # HOD: no filter — sees entire department
+
     query = query.order_by(Class.name, Subject.name, LectureAttendance.lecture_date)
     
     lectures_query = await db.execute(query)

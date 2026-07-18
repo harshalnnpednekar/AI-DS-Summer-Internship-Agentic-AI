@@ -32,8 +32,14 @@ class LectureAttendanceSubmit(BaseModel):
     students_present_count: int
     absentee_roll_numbers: Optional[List[str]] = []
     session_type: str = "Theory"
-    academic_year: AcademicYearEnum = Field(..., description="Academic year in YYYY-YYYY format")
-    semester: SemesterEnum = Field(..., description="Semester number from 1-8")
+    academic_year: Optional[AcademicYearEnum] = Field(
+        default=None,
+        description="Academic year in YYYY-YYYY format; auto-filled when omitted",
+    )
+    semester: Optional[SemesterEnum] = Field(
+        default=None,
+        description="Semester number from 1-8; auto-filled when omitted",
+    )
 
 # Old attendance schemas (retained for backward compatibility if any service uses them)
 class AttendanceBase(BaseModel):
