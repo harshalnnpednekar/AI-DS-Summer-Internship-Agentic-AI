@@ -32,8 +32,10 @@ async def get_form_meta(
         # User requested all faculties to see all classes in dropdowns
         classes_result = await db.execute(select(Class))
         subjects_result = await db.execute(select(Subject).order_by(Subject.name))
+        mappings_result = await db.execute(select(FacultySubjectMapping).where(FacultySubjectMapping.faculty_id == current_user.id))
         classes = classes_result.scalars().all()
         subjects = subjects_result.scalars().all()
+        mappings = mappings_result.scalars().all()
         
         # Sort classes by academic year sequence (FE, SE, TE, BE)
         def sort_class(c):
@@ -46,7 +48,8 @@ async def get_form_meta(
             success=True,
             data={
                 "classes": [{"id": str(c.id), "name": c.name, "total_students": c.total_students} for c in classes],
-                "subjects": [{"id": str(s.id), "code": s.code, "name": s.name, "year": s.year, "semester": s.semester} for s in subjects]
+                "subjects": [{"id": str(s.id), "code": s.code, "name": s.name, "year": s.year, "semester": s.semester} for s in subjects],
+                "mappings": [{"class_id": str(m.class_id), "subject_id": str(m.subject_id)} for m in mappings]
             }
         )
 

@@ -194,13 +194,17 @@
 
 .subject-select {
   flex: 1;
-  padding: 14px 16px;
+  padding: 14px 40px 14px 16px;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   font-size: 1rem;
   color: #1e293b;
   outline: none;
-  background: #f8fafc;
+  background: #f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 16px center;
+  background-size: 16px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
   transition: all 0.2s;
   cursor: pointer;
 }

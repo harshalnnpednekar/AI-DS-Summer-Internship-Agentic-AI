@@ -121,7 +121,7 @@ const Dashboard = () => {
           <div className="action-icon text-secondary">
             <Users size={24} />
           </div>
-          <h3>{userInfo.role === 'HOD' ? 'Attendance Data' : 'My Attendance Data'}</h3>
+          <h3>Attendance Data</h3>
           <p>{userInfo.role === 'HOD' ? 'View attendance stats for department classes' : 'View attendance stats for your classes'}</p>
           <button className="btn-text action-link" onClick={() => navigate('/attendance-data')}>Open &gt;</button>
         </div>

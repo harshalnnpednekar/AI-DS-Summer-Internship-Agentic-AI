@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, BookOpen, Filter } from 'lucide-react';
 import './SubjectManager.css';
 
-const SubjectManager = ({ assignedClasses }) => {
+const SubjectManager = ({ assignedClasses, availableClasses = [] }) => {
   const [subjects, setSubjects] = useState([]);
   const [mySubjects, setMySubjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,10 +13,13 @@ const SubjectManager = ({ assignedClasses }) => {
   
   // New Mapping State
   const [selectedSubjectId, setSelectedSubjectId] = useState('');
-  const [classId, setClassId] = useState(''); // Assuming a generic input or selection for class, though typically it's an ID. Let's just use a dummy UUID or fetch classes?
+  const [selectedClassId, setSelectedClassId] = useState('');
 
-  // Mock class ID for now, since we haven't built class management fully
-  const MOCK_CLASS_ID = "00000000-0000-0000-0000-000000000000";
+  // Filter available classes to only those assigned to the faculty
+  const myClasses = availableClasses.filter(c => {
+    const currentClasses = (assignedClasses || '').replace(/[{}]/g, '').split(',').map(s => s.trim()).filter(s => s);
+    return currentClasses.includes(c.name);
+  });
 
   // Parse allowed years from assignedClasses
   const getAllowedYears = (classesStr) => {
@@ -32,12 +35,46 @@ const SubjectManager = ({ assignedClasses }) => {
 
   const allowedYears = getAllowedYears(assignedClasses);
 
+  // ── Detect current semester parity from month ──
+  const getCurrentSemParity = () => {
+    const month = new Date().getMonth(); // 0=Jan … 11=Dec
+    // Jan-Jun (0-5) → Even semesters (Sem-II, IV, VI, VIII)
+    // Jul-Dec (6-11) → Odd semesters (Sem-I, III, V, VII)
+    return month >= 0 && month <= 5 ? 'even' : 'odd';
+  };
+
+  // Map year → [odd_sem, even_sem]
+  const YEAR_SEMS = { FE: [1, 2], SE: [3, 4], TE: [5, 6], BE: [7, 8] };
+
+  const getDefaultSem = (year) => {
+    if (!year || !YEAR_SEMS[year]) return '';
+    const [odd, even] = YEAR_SEMS[year];
+    return getCurrentSemParity() === 'even' ? String(even) : String(odd);
+  };
+
+  useEffect(() => {
+    // Auto-select year when only one year is assigned
+    if (allowedYears.length === 1 && !yearFilter) {
+      setYearFilter(allowedYears[0]);
+    }
+  }, [allowedYears.join()]);
+
+  useEffect(() => {
+    // When year is set (or changes), auto-set semester to current parity
+    if (yearFilter) {
+      setSemesterFilter(getDefaultSem(yearFilter));
+    } else {
+      setSemesterFilter('');
+    }
+  }, [yearFilter]);
+
   useEffect(() => {
     fetchMySubjects();
     if (allowedYears.length > 0) {
       fetchAllSubjects();
     }
   }, [yearFilter, semesterFilter, assignedClasses]);
+
 
   const fetchMySubjects = async () => {
     const token = localStorage.getItem('accessToken');
@@ -66,7 +103,11 @@ const SubjectManager = ({ assignedClasses }) => {
       });
       const data = await res.json();
       if (Array.isArray(data)) {
-        const filtered = data.filter(sub => allowedYears.includes(sub.year));
+        let filtered = data.filter(sub => allowedYears.includes(sub.year));
+        // Further filter by year selection
+        if (yearFilter) filtered = filtered.filter(sub => sub.year === yearFilter);
+        // Further filter by semester selection
+        if (semesterFilter) filtered = filtered.filter(sub => String(sub.semester) === String(semesterFilter));
         setSubjects(filtered);
       }
     } catch (e) {
@@ -76,11 +117,12 @@ const SubjectManager = ({ assignedClasses }) => {
     }
   };
 
+
   const handleMapSubject = async () => {
-    if (!selectedSubjectId) return;
+    if (!selectedSubjectId || !selectedClassId) return;
     const token = localStorage.getItem('accessToken');
     try {
-      const res = await fetch(`/api/subjects/faculty/map/${selectedSubjectId}?class_id=${MOCK_CLASS_ID}`, {
+      const res = await fetch(`/api/subjects/faculty/map/${selectedSubjectId}?class_id=${selectedClassId}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -124,9 +166,13 @@ const SubjectManager = ({ assignedClasses }) => {
 
   useEffect(() => {
     if (semesterFilter && !availableSemesters.includes(Number(semesterFilter))) {
-      setSemesterFilter('');
+      // Reset to default parity sem for selected year instead of empty
+      setSemesterFilter(yearFilter ? getDefaultSem(yearFilter) : '');
     }
   }, [yearFilter, allowedYears]);
+
+  const semParityLabel = getCurrentSemParity() === 'even' ? 'Even' : 'Odd';
+
 
   return (
     <div className="subject-manager">
@@ -188,6 +234,18 @@ const SubjectManager = ({ assignedClasses }) => {
         ) : (
           <div className="add-controls">
           <select 
+            value={selectedClassId} 
+            onChange={(e) => setSelectedClassId(e.target.value)}
+            className="subject-select"
+            style={{flex: '0.5'}}
+          >
+            <option value="">-- Select a Class --</option>
+            {myClasses.map(cls => (
+              <option key={cls.id} value={cls.id}>{cls.name}</option>
+            ))}
+          </select>
+
+          <select 
             value={selectedSubjectId} 
             onChange={(e) => setSelectedSubjectId(e.target.value)}
             className="subject-select"
@@ -203,7 +261,7 @@ const SubjectManager = ({ assignedClasses }) => {
           <button 
             className="btn-add" 
             onClick={handleMapSubject}
-            disabled={!selectedSubjectId}
+            disabled={!selectedSubjectId || !selectedClassId}
           >
             <Plus size={16} /> Add Subject
           </button>

@@ -325,7 +325,7 @@ const Profile = () => {
       
       {/* Subject Management for Faculty/HOD (Full Width) */}
       {(role === 'HOD' || role === 'FACULTY') && !isEditing && (
-        <SubjectManager assignedClasses={profile.assigned_classes} />
+        <SubjectManager assignedClasses={profile.assigned_classes} availableClasses={availableClasses} />
       )}
     </div>
   );

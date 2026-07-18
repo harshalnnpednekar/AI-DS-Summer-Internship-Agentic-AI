@@ -49,6 +49,8 @@ Managing student attendance is simplified through an intuitive upload and proces
 - **Dynamic Excel Generation**: Constructs fully formatted Master and Subject-specific Excel sheets dynamically in-memory and streams them directly to the client, removing any local filesystem clutter and ensuring data is always real-time.
 - **Role-Based Defaulter Views**: Strictly enforces Role-Based Access Control (RBAC). Faculty members can securely view and manage defaulters strictly for the lectures they have conducted, while HODs maintain a panoramic view of all defaulters across the department.
 - **Collapsible Accordion UI**: Attendance sheets and defaulter stats are intelligently grouped by Academic Year (FE, SE, TE, BE), Class, and Faculty, leveraging native HTML5 `<details>` for a clean, clutter-free dashboard experience that adapts intelligently based on the user's role.
+- **Custom AM/PM Time Picker**: Implemented a highly bespoke, 12-hour AM/PM time picker constructed from native inputs. It guarantees strict formatting (`10:00 AM - 11:00 AM`) regardless of the OS locale, using equal flex-widths for a premium, symmetrical UI.
+- **Dynamic Semester Resolution**: The system now dynamically fetches and auto-calculates the correct semester based on the selected class and current month.
 
 ### 3. Automated Notification Agent
 OmniSync doesn't just store data; it actively works for you in the background.
