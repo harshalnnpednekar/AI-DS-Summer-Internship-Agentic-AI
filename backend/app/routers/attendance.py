@@ -378,6 +378,177 @@ async def broadcast_defaulters(
 
 
 
+allow_student = RoleChecker([RoleEnum.STUDENT])
+
+@router.get("/student/me", response_model=StandardResponse)
+async def get_my_attendance(
+    current_user: User = Depends(allow_student),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Returns per-subject attendance stats for the currently logged-in student.
+    Matches by roll_number in absentee_roll_numbers and student's division.
+    """
+    # Fetch student profile
+    sp_result = await db.execute(
+        select(StudentProfile).where(StudentProfile.user_id == current_user.id)
+    )
+    student_profile = sp_result.scalars().first()
+    if not student_profile:
+        return StandardResponse(success=False, data=None, error="Student profile not found.")
+
+    roll = str(student_profile.roll_number)
+    division = student_profile.division
+
+    # Fetch all lectures for this student's class division
+    lectures_result = await db.execute(
+        select(LectureAttendance, Class.name, Subject.name, Subject.code, User.first_name, User.last_name)
+        .join(Class, LectureAttendance.class_id == Class.id)
+        .join(Subject, LectureAttendance.subject_id == Subject.id)
+        .join(User, LectureAttendance.faculty_id == User.id)
+        .where(Class.name == division)
+        .order_by(Subject.name, LectureAttendance.lecture_date)
+    )
+    lectures = lectures_result.all()
+
+    if not lectures:
+        return StandardResponse(success=True, data={
+            "roll_number": roll,
+            "division": division,
+            "overall_attendance": 0,
+            "total_theory": 0,
+            "total_practical": 0,
+            "attended_theory": 0,
+            "attended_practical": 0,
+            "subject_wise": [],
+            "recent_lectures": [],
+            "is_defaulter": False,
+            "defaulter_status": None
+        }, error=None)
+
+    # Build per-subject stats
+    subject_map = {}
+    for lecture, class_name, subject_name, subject_code, f_first, f_last in lectures:
+        key = f"{subject_name}_{lecture.session_type or 'Theory'}"
+        # Normalize session type
+        raw_st = lecture.session_type or "Theory"
+        if raw_st in ("Lecture", "lecture"): raw_st = "Theory"
+        elif raw_st in ("Lab", "lab"): raw_st = "Practical"
+
+        subject_key = subject_name
+        if subject_key not in subject_map:
+            subject_map[subject_key] = {
+                "subject": subject_name,
+                "code": subject_code,
+                "faculty": f"{f_first} {f_last}",
+                "total_theory": 0,
+                "total_practical": 0,
+                "absent_theory": 0,
+                "absent_practical": 0,
+            }
+
+        absentees = [str(r).strip() for r in (lecture.absentee_roll_numbers or [])]
+        is_absent = roll in absentees
+
+        if raw_st == "Theory":
+            subject_map[subject_key]["total_theory"] += 1
+            if is_absent:
+                subject_map[subject_key]["absent_theory"] += 1
+        else:
+            subject_map[subject_key]["total_practical"] += 1
+            if is_absent:
+                subject_map[subject_key]["absent_practical"] += 1
+
+    # Compute attendance percentages per subject
+    subject_wise = []
+    grand_total = 0
+    grand_attended = 0
+
+    for subj, d in subject_map.items():
+        tot_t = d["total_theory"]
+        tot_p = d["total_practical"]
+        att_t = tot_t - d["absent_theory"]
+        att_p = tot_p - d["absent_practical"]
+        total = tot_t + tot_p
+        attended = att_t + att_p
+        pct = round((attended / total) * 100) if total > 0 else 0
+        theory_pct = round((att_t / tot_t) * 100) if tot_t > 0 else None
+        practical_pct = round((att_p / tot_p) * 100) if tot_p > 0 else None
+
+        grand_total += total
+        grand_attended += attended
+
+        status = "safe"
+        if pct < 50:
+            status = "critical"
+        elif pct < 75:
+            status = "at_risk"
+
+        subject_wise.append({
+            "subject": d["subject"],
+            "code": d["code"],
+            "faculty": d["faculty"],
+            "total_lectures": total,
+            "total_theory": tot_t,
+            "total_practical": tot_p,
+            "attended": attended,
+            "theory_attendance": theory_pct,
+            "practical_attendance": practical_pct,
+            "attendance_pct": pct,
+            "status": status,
+            # Lectures needed to reach 75%: ceil((0.75*total - attended) / 0.25)
+            "lectures_needed": max(0, -(-((75 * total // 100) + 1 - attended) // 1)) if pct < 75 else 0
+        })
+
+    overall_pct = round((grand_attended / grand_total) * 100) if grand_total > 0 else 0
+    is_defaulter = overall_pct < 75
+    defaulter_status = "Critical" if overall_pct < 50 else ("At Risk" if is_defaulter else None)
+
+    # Recent 10 lectures for this class (for timetable/recent view)
+    recent_lectures_result = await db.execute(
+        select(LectureAttendance, Class.name, Subject.name, User.first_name, User.last_name)
+        .join(Class, LectureAttendance.class_id == Class.id)
+        .join(Subject, LectureAttendance.subject_id == Subject.id)
+        .join(User, LectureAttendance.faculty_id == User.id)
+        .where(Class.name == division)
+        .order_by(LectureAttendance.lecture_date.desc(), LectureAttendance.created_at.desc())
+    )
+    recent_all = recent_lectures_result.all()
+    recent_lectures = []
+    for lec, c_name, s_name, f_first, f_last in recent_all[:20]:
+        absentees = [str(r).strip() for r in (lec.absentee_roll_numbers or [])]
+        raw_st = lec.session_type or "Theory"
+        if raw_st in ("Lecture", "lecture"): raw_st = "Theory"
+        elif raw_st in ("Lab", "lab"): raw_st = "Practical"
+        recent_lectures.append({
+            "date": lec.lecture_date.strftime("%b %d, %Y"),
+            "subject": s_name,
+            "session_type": raw_st,
+            "time_slot": lec.time_slot,
+            "topic": lec.topic_covered,
+            "faculty": f"{f_first} {f_last}",
+            "present": roll not in absentees,
+            "total": lec.total_students_enrolled,
+        })
+
+    return StandardResponse(
+        success=True,
+        data={
+            "roll_number": roll,
+            "division": division,
+            "overall_attendance": overall_pct,
+            "total_theory": sum(d["total_theory"] for d in subject_map.values()),
+            "total_practical": sum(d["total_practical"] for d in subject_map.values()),
+            "attended_theory": sum(d["total_theory"] - d["absent_theory"] for d in subject_map.values()),
+            "attended_practical": sum(d["total_practical"] - d["absent_practical"] for d in subject_map.values()),
+            "subject_wise": subject_wise,
+            "recent_lectures": recent_lectures,
+            "is_defaulter": is_defaulter,
+            "defaulter_status": defaulter_status,
+        },
+        error=None
+    )
+
 allow_hod = RoleChecker([RoleEnum.HOD])
 
 

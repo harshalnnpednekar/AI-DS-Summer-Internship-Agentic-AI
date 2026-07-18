@@ -150,7 +150,7 @@ const Login = () => {
         localStorage.setItem('userName', `${data.data.user.first_name} ${data.data.user.last_name}`);
         localStorage.setItem('userInitials', (data.data.user.first_name[0] + data.data.user.last_name[0]).toUpperCase());
         localStorage.setItem('userDesc', data.data.user.role === 'STUDENT' ? 'Student' : (data.data.user.role === 'HOD' ? 'Head of Department' : 'Faculty'));
-        navigate('/dashboard');
+        navigate(data.data.user.role === 'STUDENT' ? '/student-dashboard' : '/dashboard');
       } else {
         setError(data.error || 'Registration failed. Please try again.');
       }
@@ -182,7 +182,7 @@ const Login = () => {
         localStorage.setItem('userName', `${data.data.user.first_name} ${data.data.user.last_name}`);
         localStorage.setItem('userInitials', (data.data.user.first_name[0] + data.data.user.last_name[0]).toUpperCase());
         localStorage.setItem('userDesc', data.data.user.role === 'STUDENT' ? 'Student' : (data.data.user.role === 'HOD' ? 'Head of Department' : 'Faculty'));
-        navigate('/dashboard');
+        navigate(data.data.user.role === 'STUDENT' ? '/student-dashboard' : '/dashboard');
       } else {
         setError(data.error || 'Authentication failed');
       }
