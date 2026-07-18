@@ -3,11 +3,10 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from .database import get_db
-from .config import settings
-from .schemas import TokenData
-from .models import User, RoleEnum
-import uuid
+from app.database import get_db
+from app.config import settings
+from app.schemas import TokenData
+from app.models import User, RoleEnum
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
@@ -35,7 +34,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     return user
 
 async def get_current_active_user(current_user: User = Depends(get_current_user)):
-    # Here you could check if user is active if you had an is_active field
+    if not current_user.is_active:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")
     return current_user
 
 class RoleChecker:
@@ -49,3 +49,10 @@ class RoleChecker:
                 detail="Operation not permitted"
             )
         return user
+
+# Helper shortcuts for routes
+require_student = RoleChecker([RoleEnum.student])
+require_faculty = RoleChecker([RoleEnum.faculty])
+require_hod = RoleChecker([RoleEnum.hod])
+require_faculty_or_hod = RoleChecker([RoleEnum.faculty, RoleEnum.hod])
+require_admin = RoleChecker([RoleEnum.admin])

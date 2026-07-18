@@ -17,9 +17,13 @@ const MarkAttendance = () => {
   
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState('');
+  const [selectedSemester, setSelectedSemester] = useState('');
 
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
+  const [academicYears, setAcademicYears] = useState([]);
+  const [semesters, setSemesters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitSuccess, setSubmitSuccess] = useState('');
   const [submitError, setSubmitError] = useState('');
@@ -37,6 +41,8 @@ const MarkAttendance = () => {
         if (data.success) {
           const fetchedClasses = data.data.classes || [];
           const fetchedSubjects = data.data.subjects || [];
+          const fetchedAcademicYears = data.data.academic_years || [];
+          const fetchedSemesters = data.data.semesters || [];
           
           if (fetchedClasses.length === 0) {
             alert("Warning: You do not have any classes or subjects assigned to you. Please contact HOD to map subjects to your profile.");
@@ -44,6 +50,16 @@ const MarkAttendance = () => {
           
           setClasses(fetchedClasses);
           setSubjects(fetchedSubjects);
+          setAcademicYears(fetchedAcademicYears);
+          setSemesters(fetchedSemesters);
+          
+          // Set default values if available
+          if (fetchedAcademicYears.length > 0) {
+            setSelectedAcademicYear(fetchedAcademicYears[fetchedAcademicYears.length - 1]);
+          }
+          if (fetchedSemesters.length > 0) {
+            setSelectedSemester(fetchedSemesters[0]);
+          }
         } else {
           console.error("API returned error:", data);
           alert("Could not load classes: " + (data.error || "Unknown error"));
@@ -133,6 +149,16 @@ const MarkAttendance = () => {
     setSubmitError('');
     setSubmitSuccess('');
     
+    // Validate academic year and semester
+    if (!selectedAcademicYear) {
+      setSubmitError('Academic Year is required');
+      return;
+    }
+    if (!selectedSemester) {
+      setSubmitError('Semester is required');
+      return;
+    }
+    
     try {
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/attendance/submit', {
@@ -150,7 +176,9 @@ const MarkAttendance = () => {
           total_students_enrolled: parseInt(totalStudents),
           students_present_count: parseInt(studentsPresent),
           absentee_roll_numbers: absentees,
-          session_type: sessionType
+          session_type: sessionType,
+          academic_year: selectedAcademicYear,
+          semester: selectedSemester
         })
       });
       const data = await response.json();
@@ -165,6 +193,13 @@ const MarkAttendance = () => {
         setTimeSlot('');
         setSelectedClass('');
         setSelectedSubject('');
+        // Reset to defaults but keep the academic year and semester
+        if (academicYears.length > 0) {
+          setSelectedAcademicYear(academicYears[academicYears.length - 1]);
+        }
+        if (semesters.length > 0) {
+          setSelectedSemester(semesters[0]);
+        }
       } else {
         setSubmitError(data.error || "Failed to submit attendance.");
       }
@@ -257,6 +292,27 @@ const MarkAttendance = () => {
                     return s.semester === currentSemesterNum;
                   }).map(s => (
                     <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group half">
+                <label>Academic Year <span className="text-danger">*</span></label>
+                <select className="form-select" value={selectedAcademicYear} onChange={(e) => setSelectedAcademicYear(e.target.value)} required>
+                  <option value="" disabled hidden>Select academic year</option>
+                  {academicYears.map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group half">
+                <label>Semester <span className="text-danger">*</span></label>
+                <select className="form-select" value={selectedSemester} onChange={(e) => setSelectedSemester(e.target.value)} required>
+                  <option value="" disabled hidden>Select semester</option>
+                  {semesters.map(sem => (
+                    <option key={sem} value={sem}>Semester {sem}</option>
                   ))}
                 </select>
               </div>

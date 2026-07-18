@@ -11,7 +11,21 @@ from alembic import context
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.database import Base
-from app.models import Event, Student, SendLog
+from app.models import (  # noqa: F401 — register all tables for autogenerate
+    User, RoleEnum,
+    Department,
+    AcademicYear, Class,
+    StudentProfile, StudentStatusEnum, Enrollment, EnrollmentStatusEnum,
+    FacultyProfile,
+    Subject, ClassSubject,
+    AttendanceSession, AttendanceRecord, AttendanceStatusEnum,
+    Grade, GradeResultEnum,
+    KTRecord, KTStatusEnum,
+    Certificate, CertificateCategoryEnum, VerificationStatusEnum,
+    Event,
+    SendLog,
+    DefaulterList,
+)
 from app.config import settings
 
 # this is the Alembic Config object, which provides

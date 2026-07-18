@@ -1,5 +1,5 @@
-from app.models import SendLog
-from app.schemas import SendLogCreate
+from app.models import SendLog, Event, RoleEnum
+from app.schemas import SendLogCreate, EventCreate, EventResponse, StandardResponse, SendLogResponse
 from app.services.calendar_extractor.extractor import extract_events_from_pdf
 import uuid
 import os
@@ -8,9 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Union
 from app.database import get_db
-from app.schemas import EventCreate, EventResponse, StandardResponse, SendLogResponse
-from app.models import Event, RoleEnum
-from app.dependencies import get_current_active_user, RoleChecker
+from app.dependencies.auth import get_current_active_user, RoleChecker
 from sqlalchemy import select
 from uuid import UUID
 from app import crud

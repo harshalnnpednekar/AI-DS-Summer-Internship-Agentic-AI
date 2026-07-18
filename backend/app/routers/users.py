@@ -1,11 +1,11 @@
-from app import crud
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 from typing import List, Dict, Any
 from app.database import get_db
-from app.models import User, FacultyProfile, StudentProfile, RoleEnum
-from app.schemas import StudentResponse
+from app.models import User, FacultyProfile, StudentProfile, RoleEnum, Department
+from app.schemas import StudentResponse, StandardResponse
 import logging
 
 logger = logging.getLogger(__name__)
@@ -24,34 +24,42 @@ async def get_users_by_department(
     try:
         users_list = []
         
-        # 1. Fetch Students
-        student_query = select(User, StudentProfile).join(StudentProfile, User.id == StudentProfile.user_id)
+        # 1. Fetch Students joined with their department
+        student_query = (
+            select(User, StudentProfile, Department)
+            .join(StudentProfile, User.id == StudentProfile.user_id)
+            .join(Department, StudentProfile.department_id == Department.id)
+        )
         if department != "ALL":
-            student_query = student_query.where(StudentProfile.department == department)
+            student_query = student_query.where(Department.code == department)
             
         student_results = await db.execute(student_query)
-        for user, profile in student_results.all():
+        for user, profile, dept in student_results.all():
             users_list.append({
                 "id": str(user.id),
                 "name": f"{user.first_name} {user.last_name}",
                 "email": user.email,
-                "role": user.role.value,
-                "department": profile.department
+                "role": user.role.value.upper(),
+                "department": dept.code
             })
 
-        # 2. Fetch Faculty and HOD
-        faculty_query = select(User, FacultyProfile).join(FacultyProfile, User.id == FacultyProfile.user_id)
+        # 2. Fetch Faculty and HOD joined with their department
+        faculty_query = (
+            select(User, FacultyProfile, Department)
+            .join(FacultyProfile, User.id == FacultyProfile.user_id)
+            .join(Department, FacultyProfile.department_id == Department.id)
+        )
         if department != "ALL":
-            faculty_query = faculty_query.where(FacultyProfile.department == department)
+            faculty_query = faculty_query.where(Department.code == department)
             
         faculty_results = await db.execute(faculty_query)
-        for user, profile in faculty_results.all():
+        for user, profile, dept in faculty_results.all():
             users_list.append({
                 "id": str(user.id),
                 "name": f"{user.first_name} {user.last_name}",
                 "email": user.email,
-                "role": user.role.value,
-                "department": profile.department
+                "role": user.role.value.upper(),
+                "department": dept.code
             })
             
         return users_list
@@ -61,27 +69,4 @@ async def get_users_by_department(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Could not retrieve users."
-        )
-
-
-logger = logging.getLogger(__name__)
-
-
-@router.get("", response_model=List[StudentResponse])
-async def read_students(
-    department: str = "ALL",
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Retrieve students, optionally filtered by department.
-    If department is 'ALL', returns all students.
-    """
-    try:
-        students = await crud.get_students(db, department=department)
-        return students
-    except Exception as e:
-        logger.error(f"Error fetching students: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Could not retrieve students."
         )
