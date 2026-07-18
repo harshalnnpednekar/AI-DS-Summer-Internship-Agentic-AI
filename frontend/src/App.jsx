@@ -11,6 +11,16 @@ import DefaulterManagement from './pages/DefaulterManagement';
 import Reports from './pages/Reports';
 import Configuration from './pages/Configuration';
 import Profile from './pages/Profile';
+import StudentCertificates from './pages/StudentCertificates';
+
+// Blocks a route if the logged-in user's role matches one of the restricted roles
+const RoleGuard = ({ restricted = [], children }) => {
+  const role = localStorage.getItem('userRole');
+  if (restricted.includes(role)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return children;
+};
 
 function App() {
   return (
@@ -18,10 +28,20 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
-        
+
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/mark-attendance" element={<MarkAttendance />} />
+
+          {/* Faculty / HOD only */}
+          <Route
+            path="/mark-attendance"
+            element={
+              <RoleGuard restricted={['STUDENT']}>
+                <MarkAttendance />
+              </RoleGuard>
+            }
+          />
+
           <Route path="/attendance-data" element={<AttendanceTracking />} />
           <Route path="/calendar" element={<AcademicCalendar />} />
           <Route path="/broadcast-logs" element={<BroadcastLogs />} />
@@ -29,6 +49,16 @@ function App() {
           <Route path="/reports" element={<Reports />} />
           <Route path="/configuration" element={<Configuration />} />
           <Route path="/profile" element={<Profile />} />
+
+          {/* Student only */}
+          <Route
+            path="/certificates"
+            element={
+              <RoleGuard restricted={['HOD', 'FACULTY']}>
+                <StudentCertificates />
+              </RoleGuard>
+            }
+          />
         </Route>
       </Routes>
     </Router>

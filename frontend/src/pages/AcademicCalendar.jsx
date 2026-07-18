@@ -151,48 +151,50 @@ const AcademicCalendar = () => {
     <div className="page-container">
       <div className="page-header">
 
-        <h1 className="page-title">Academic Calendar & Automated Updates</h1>
-        <p className="page-subtitle">Upload the department PDF calendar. The agent parses it and broadcasts deadline alerts automatically.</p>
+        <h1 className="page-title">{showBroadcast ? 'Academic Calendar & Automated Updates' : 'Upcoming Events'}</h1>
+        <p className="page-subtitle">{showBroadcast ? 'Upload the department PDF calendar. The agent parses it and broadcasts deadline alerts automatically.' : 'Upcoming deadlines and department events.'}</p>
       </div>
 
-      <div className={`upload-zone ${uploadStatus === 'success' ? 'success' : uploadStatus === 'error' ? 'error' : ''}`} style={{ cursor: 'pointer' }} onClick={() => document.getElementById('fileUpload').click()}>
-        <input 
-          type="file" 
-          id="fileUpload" 
-          accept=".pdf" 
-          style={{ display: 'none' }} 
-          onChange={handleFileUpload} 
-        />
-        <div className="upload-content">
-          {isUploading ? (
-            <>
-              <UploadCloud size={32} className="text-secondary mb-2" />
-              <h3 className="font-semibold" style={{ fontSize: '1rem' }}>Parsing PDF...</h3>
-              <p className="text-secondary" style={{ fontSize: '0.875rem' }}>Please wait while the AI extracts events.</p>
-            </>
-          ) : uploadStatus === 'success' ? (
-            <>
-              <CheckCircle size={32} className="text-success mb-2" />
-              <h3 className="font-semibold" style={{ fontSize: '1rem' }}>{fileName}</h3>
-              <p className="text-secondary" style={{ fontSize: '0.875rem' }}>{events.length} events extracted · Click to replace</p>
-              <span className="badge badge-success mt-2">PDF Parsed Successfully</span>
-            </>
-          ) : uploadStatus === 'error' ? (
-            <>
-              <AlertCircle size={32} className="text-danger mb-2" />
-              <h3 className="font-semibold" style={{ fontSize: '1rem' }}>Upload Failed</h3>
-              <p className="text-secondary" style={{ fontSize: '0.875rem' }}>{errorMessage} · Click to retry</p>
-              <span className="badge badge-danger mt-2">Error Parsing PDF</span>
-            </>
-          ) : (
-            <>
-              <UploadCloud size={32} className="text-primary mb-2" />
-              <h3 className="font-semibold" style={{ fontSize: '1rem' }}>Upload Academic Calendar</h3>
-              <p className="text-secondary" style={{ fontSize: '0.875rem' }}>Drag & drop your PDF here or click to browse</p>
-            </>
-          )}
+      {showBroadcast && (
+        <div className={`upload-zone ${uploadStatus === 'success' ? 'success' : uploadStatus === 'error' ? 'error' : ''}`} style={{ cursor: 'pointer' }} onClick={() => document.getElementById('fileUpload').click()}>
+          <input 
+            type="file" 
+            id="fileUpload" 
+            accept=".pdf" 
+            style={{ display: 'none' }} 
+            onChange={handleFileUpload} 
+          />
+          <div className="upload-content">
+            {isUploading ? (
+              <>
+                <UploadCloud size={32} className="text-secondary mb-2" />
+                <h3 className="font-semibold" style={{ fontSize: '1rem' }}>Parsing PDF...</h3>
+                <p className="text-secondary" style={{ fontSize: '0.875rem' }}>Please wait while the AI extracts events.</p>
+              </>
+            ) : uploadStatus === 'success' ? (
+              <>
+                <CheckCircle size={32} className="text-success mb-2" />
+                <h3 className="font-semibold" style={{ fontSize: '1rem' }}>{fileName}</h3>
+                <p className="text-secondary" style={{ fontSize: '0.875rem' }}>{events.length} events extracted · Click to replace</p>
+                <span className="badge badge-success mt-2">PDF Parsed Successfully</span>
+              </>
+            ) : uploadStatus === 'error' ? (
+              <>
+                <AlertCircle size={32} className="text-danger mb-2" />
+                <h3 className="font-semibold" style={{ fontSize: '1rem' }}>Upload Failed</h3>
+                <p className="text-secondary" style={{ fontSize: '0.875rem' }}>{errorMessage} · Click to retry</p>
+                <span className="badge badge-danger mt-2">Error Parsing PDF</span>
+              </>
+            ) : (
+              <>
+                <UploadCloud size={32} className="text-primary mb-2" />
+                <h3 className="font-semibold" style={{ fontSize: '1rem' }}>Upload Academic Calendar</h3>
+                <p className="text-secondary" style={{ fontSize: '0.875rem' }}>Drag & drop your PDF here or click to browse</p>
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="calendar-layout-grid">
         {/* Left Column */}

@@ -10,7 +10,8 @@ import {
   Settings, 
   LogOut,
   Edit,
-  Cpu
+  Cpu,
+  Award
 } from 'lucide-react';
 import './Layout.css';
 
@@ -115,12 +116,18 @@ const Layout = () => {
             </NavLink>
             <NavLink to="/calendar" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
               <Calendar size={20} />
-              <span>Academic Calendar</span>
+              <span>{userInfo.role === 'STUDENT' ? 'Upcoming Events' : 'Academic Calendar'}</span>
             </NavLink>
             <NavLink to="/attendance-data" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
               <Users size={20} />
-              <span>Attendance Tracking</span>
+              <span>{userInfo.role === 'STUDENT' ? 'My Attendance' : 'Attendance Tracking'}</span>
             </NavLink>
+            {userInfo.role === 'STUDENT' && (
+              <NavLink to="/certificates" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+                <Award size={20} />
+                <span>My Certificates</span>
+              </NavLink>
+            )}
             {(userInfo.role === 'HOD' || userInfo.role === 'FACULTY') && (
               <NavLink to="/defaulter-management" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
                 <AlertTriangle size={20} />

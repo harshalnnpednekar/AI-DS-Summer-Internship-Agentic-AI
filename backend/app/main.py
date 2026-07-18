@@ -1,14 +1,18 @@
 import sys
 import asyncio
+import selectors
 
 # Windows + Python 3.12+ uses ProactorEventLoop by default, which is
-# incompatible with psycopg async. Force SelectorEventLoop on Windows.
+# incompatible with psycopg async. Replace the running loop with a
+# SelectorEventLoop before any DB connections are made.
 if sys.platform == "win32":
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    _selector = selectors.SelectSelector()
+    _loop = asyncio.SelectorEventLoop(_selector)
+    asyncio.set_event_loop(_loop)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import events, auth, attendance, users, subjects
+from app.routers import events, auth, attendance, users, subjects, certificates
 import logging
 from contextlib import asynccontextmanager
 
@@ -62,6 +66,7 @@ app.include_router(auth.router)
 app.include_router(attendance.router)
 app.include_router(users.router)
 app.include_router(subjects.router)
+app.include_router(certificates.router)
 
 @app.get("/")
 async def health_check():
