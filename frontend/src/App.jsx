@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import StudentDashboard from './pages/StudentDashboard';
 import MarkAttendance from './pages/MarkAttendance';
 import AttendanceTracking from './pages/AttendanceTracking';
 import AcademicCalendar from './pages/AcademicCalendar';
@@ -21,6 +22,7 @@ function App() {
         
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/student-dashboard" element={<StudentDashboard />} />
           <Route path="/mark-attendance" element={<MarkAttendance />} />
           <Route path="/attendance-data" element={<AttendanceTracking />} />
           <Route path="/calendar" element={<AcademicCalendar />} />

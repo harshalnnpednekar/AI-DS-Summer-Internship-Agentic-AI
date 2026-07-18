@@ -32,6 +32,12 @@ const Dashboard = () => {
     const token = localStorage.getItem('accessToken');
     const role = localStorage.getItem('userRole');
 
+    // Guard: students should never see the faculty dashboard
+    if (role === 'STUDENT') {
+      navigate('/student-dashboard', { replace: true });
+      return;
+    }
+
     const fetchStats = async () => {
       try {
         // Ensure HOD has a faculty_profile row (one-time repair for accounts created before the fix)

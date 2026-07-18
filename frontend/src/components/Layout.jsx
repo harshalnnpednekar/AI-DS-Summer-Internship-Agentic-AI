@@ -109,7 +109,7 @@ const Layout = () => {
 
           <div className="nav-section mt-4">
             <h3 className="nav-section-title">{userInfo.role === 'STUDENT' ? 'STUDENT PORTAL' : 'MANAGEMENT'}</h3>
-            <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+            <NavLink to={userInfo.role === 'STUDENT' ? '/student-dashboard' : '/dashboard'} className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
               <LayoutDashboard size={20} />
               <span>Overview</span>
             </NavLink>
@@ -117,10 +117,12 @@ const Layout = () => {
               <Calendar size={20} />
               <span>Academic Calendar</span>
             </NavLink>
-            <NavLink to="/attendance-data" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
-              <Users size={20} />
-              <span>Attendance Tracking</span>
-            </NavLink>
+            {userInfo.role !== 'STUDENT' && (
+              <NavLink to="/attendance-data" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+                <Users size={20} />
+                <span>Attendance Tracking</span>
+              </NavLink>
+            )}
             {(userInfo.role === 'HOD' || userInfo.role === 'FACULTY') && (
               <NavLink to="/defaulter-management" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
                 <AlertTriangle size={20} />
