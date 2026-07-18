@@ -23,6 +23,15 @@ class SubjectBase(BaseModel):
 class SubjectCreate(SubjectBase):
     pass
 
+class SubjectUpdate(BaseModel):
+    code: Optional[str] = None
+    name: Optional[str] = None
+    department_id: Optional[UUID] = None
+    year_level: Optional[int] = Field(default=None, ge=1, le=4)
+    semester: Optional[int] = Field(default=None, ge=1, le=8)
+    credits: Optional[int] = None
+    is_active: Optional[bool] = None
+
 class SubjectResponse(SubjectBase):
     id: UUID
     year: str

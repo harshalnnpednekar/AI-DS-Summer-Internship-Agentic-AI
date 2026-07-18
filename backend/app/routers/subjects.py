@@ -5,7 +5,7 @@ from typing import List, Optional
 from uuid import UUID
 from app.database import get_db
 from app.models import ClassSubject, FacultyProfile, RoleEnum, Subject, User
-from app.schemas import SubjectCreate, SubjectResponse
+from app.schemas import SubjectCreate, SubjectResponse, SubjectUpdate
 from app.dependencies.auth import get_current_active_user as get_current_user
 import logging
 
@@ -68,6 +68,39 @@ async def create_subject(
     await db.commit()
     await db.refresh(new_subject)
     return new_subject
+
+
+@router.patch("/{subject_id}", response_model=SubjectResponse)
+async def update_subject(
+    subject_id: UUID,
+    subject_update: SubjectUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    require_subject_manager(current_user)
+
+    subject = await db.get(Subject, subject_id)
+    if not subject:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Subject not found")
+
+    update_data = subject_update.model_dump(exclude_unset=True)
+    if not update_data:
+        return subject
+
+    effective_year_level = update_data.get("year_level", subject.year_level)
+    effective_semester = update_data.get("semester", subject.semester)
+    if (effective_semester + 1) // 2 != effective_year_level:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="year_level and semester are inconsistent",
+        )
+
+    for field, value in update_data.items():
+        setattr(subject, field, value)
+
+    await db.commit()
+    await db.refresh(subject)
+    return subject
 
 
 @router.get("/faculty", response_model=List[SubjectResponse])

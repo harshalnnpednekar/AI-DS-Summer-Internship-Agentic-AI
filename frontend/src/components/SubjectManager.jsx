@@ -6,14 +6,27 @@ const SubjectManager = ({ assignedClasses, availableClasses = [] }) => {
   const [subjects, setSubjects] = useState([]);
   const [mySubjects, setMySubjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Filters
   const [yearFilter, setYearFilter] = useState('');
   const [semesterFilter, setSemesterFilter] = useState('');
-  
+
   // New Mapping State
   const [selectedSubjectId, setSelectedSubjectId] = useState('');
   const [selectedClassId, setSelectedClassId] = useState('');
+
+  // Edit state
+  const [editingSubjectId, setEditingSubjectId] = useState(null);
+  const [editForm, setEditForm] = useState({
+    code: '',
+    name: '',
+    year_level: 1,
+    semester: 1,
+    credits: 0,
+    is_active: true,
+  });
+  const [editError, setEditError] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
 
   // Filter available classes to only those assigned to the faculty
   const myClasses = availableClasses.filter(c => {
@@ -75,7 +88,6 @@ const SubjectManager = ({ assignedClasses, availableClasses = [] }) => {
     }
   }, [yearFilter, semesterFilter, assignedClasses]);
 
-
   const fetchMySubjects = async () => {
     const token = localStorage.getItem('accessToken');
     try {
@@ -87,7 +99,7 @@ const SubjectManager = ({ assignedClasses, availableClasses = [] }) => {
         setMySubjects(data);
       }
     } catch (e) {
-      console.error("Error fetching my subjects", e);
+      console.error('Error fetching my subjects', e);
     }
   };
 
@@ -96,7 +108,7 @@ const SubjectManager = ({ assignedClasses, availableClasses = [] }) => {
     let url = '/api/subjects?';
     if (yearFilter) url += `year=${yearFilter}&`;
     if (semesterFilter) url += `semester=${semesterFilter}`;
-    
+
     try {
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` }
@@ -104,19 +116,16 @@ const SubjectManager = ({ assignedClasses, availableClasses = [] }) => {
       const data = await res.json();
       if (Array.isArray(data)) {
         let filtered = data.filter(sub => allowedYears.includes(sub.year));
-        // Further filter by year selection
         if (yearFilter) filtered = filtered.filter(sub => sub.year === yearFilter);
-        // Further filter by semester selection
         if (semesterFilter) filtered = filtered.filter(sub => String(sub.semester) === String(semesterFilter));
         setSubjects(filtered);
       }
     } catch (e) {
-      console.error("Error fetching subjects", e);
+      console.error('Error fetching subjects', e);
     } finally {
       setLoading(false);
     }
   };
-
 
   const handleMapSubject = async () => {
     if (!selectedSubjectId || !selectedClassId) return;
@@ -130,10 +139,10 @@ const SubjectManager = ({ assignedClasses, availableClasses = [] }) => {
         fetchMySubjects();
         setSelectedSubjectId('');
       } else {
-        alert("Failed to map subject. You may have already mapped it.");
+        alert('Failed to map subject. You may have already mapped it.');
       }
     } catch (e) {
-      alert("Error mapping subject");
+      alert('Error mapping subject');
     }
   };
 
@@ -148,7 +157,60 @@ const SubjectManager = ({ assignedClasses, availableClasses = [] }) => {
         fetchMySubjects();
       }
     } catch (e) {
-      alert("Error unmapping subject");
+      alert('Error unmapping subject');
+    }
+  };
+
+  const handleEditSubject = (subject) => {
+    setEditingSubjectId(subject.id);
+    setEditError('');
+    setEditForm({
+      code: subject.code,
+      name: subject.name,
+      year_level: subject.year_level,
+      semester: subject.semester,
+      credits: subject.credits,
+      is_active: subject.is_active,
+    });
+  };
+
+  const handleEditSubmit = async (event) => {
+    event.preventDefault();
+    setSavingEdit(true);
+    setEditError('');
+
+    const token = localStorage.getItem('accessToken');
+    try {
+      const res = await fetch(`/api/subjects/${editingSubjectId}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editForm),
+      });
+
+      if (!res.ok) {
+        let message = 'Failed to update subject.';
+        try {
+          const data = await res.json();
+          message = data?.detail || data?.message || message;
+        } catch (e) {
+          console.error('Error parsing patch response', e);
+        }
+        setEditError(message);
+        return;
+      }
+
+      await fetchMySubjects();
+      await fetchAllSubjects();
+      setEditingSubjectId(null);
+      setEditError('');
+    } catch (e) {
+      console.error('Error updating subject', e);
+      setEditError('Error updating subject');
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -159,20 +221,16 @@ const SubjectManager = ({ assignedClasses, availableClasses = [] }) => {
     if (yearsToCheck.includes('SE')) sems.push(3, 4);
     if (yearsToCheck.includes('TE')) sems.push(5, 6);
     if (yearsToCheck.includes('BE')) sems.push(7, 8);
-    return sems.sort((a,b) => a - b);
+    return sems.sort((a, b) => a - b);
   };
-  
+
   const availableSemesters = getAvailableSemesters();
 
   useEffect(() => {
     if (semesterFilter && !availableSemesters.includes(Number(semesterFilter))) {
-      // Reset to default parity sem for selected year instead of empty
       setSemesterFilter(yearFilter ? getDefaultSem(yearFilter) : '');
     }
   }, [yearFilter, allowedYears]);
-
-  const semParityLabel = getCurrentSemParity() === 'even' ? 'Even' : 'Odd';
-
 
   return (
     <div className="subject-manager">
@@ -180,7 +238,7 @@ const SubjectManager = ({ assignedClasses, availableClasses = [] }) => {
         <BookOpen size={20} className="icon" />
         <h3>My Subjects</h3>
       </div>
-      
+
       <div className="my-subjects-list">
         {mySubjects.length === 0 ? (
           <p className="no-subjects">No subjects mapped yet.</p>
@@ -188,13 +246,105 @@ const SubjectManager = ({ assignedClasses, availableClasses = [] }) => {
           <ul>
             {mySubjects.map(sub => (
               <li key={sub.id}>
-                <div>
-                  <strong>{sub.name}</strong> ({sub.code})
-                  <span className="badge">{sub.year} - Sem {sub.semester}</span>
+                <div className="subject-card-main">
+                  <div className="subject-card-header">
+                    <strong>{sub.name}</strong>
+                    <span className="subject-code">{sub.code}</span>
+                  </div>
+                  <div className="badge-container">
+                    <span className="badge">{sub.year} - Sem {sub.semester}</span>
+                    <span className={`badge sem ${sub.is_active ? 'active' : 'inactive'}`}>
+                      {sub.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  {editingSubjectId === sub.id && (
+                    <form className="subject-edit-form" onSubmit={handleEditSubmit}>
+                      <div className="edit-grid">
+                        <label>
+                          Code
+                          <input
+                            value={editForm.code}
+                            onChange={(e) => setEditForm({ ...editForm, code: e.target.value })}
+                            required
+                          />
+                        </label>
+                        <label>
+                          Name
+                          <input
+                            value={editForm.name}
+                            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                            required
+                          />
+                        </label>
+                        <label>
+                          Programme Year
+                          <select
+                            value={editForm.year_level}
+                            onChange={(e) => setEditForm({ ...editForm, year_level: Number(e.target.value) })}
+                          >
+                            <option value={1}>FE</option>
+                            <option value={2}>SE</option>
+                            <option value={3}>TE</option>
+                            <option value={4}>BE</option>
+                          </select>
+                        </label>
+                        <label>
+                          Semester
+                          <input
+                            type="number"
+                            min="1"
+                            max="8"
+                            value={editForm.semester}
+                            onChange={(e) => setEditForm({ ...editForm, semester: Number(e.target.value) })}
+                            required
+                          />
+                        </label>
+                        <label>
+                          Credits
+                          <input
+                            type="number"
+                            min="0"
+                            value={editForm.credits}
+                            onChange={(e) => setEditForm({ ...editForm, credits: Number(e.target.value) })}
+                            required
+                          />
+                        </label>
+                        <label className="checkbox-label">
+                          <input
+                            type="checkbox"
+                            checked={editForm.is_active}
+                            onChange={(e) => setEditForm({ ...editForm, is_active: e.target.checked })}
+                          />
+                          Active
+                        </label>
+                      </div>
+                      {editError && <p className="edit-error">{editError}</p>}
+                      <div className="edit-form-actions">
+                        <button type="submit" className="btn-save" disabled={savingEdit}>
+                          {savingEdit ? 'Saving...' : 'Save'}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-cancel"
+                          onClick={() => {
+                            setEditingSubjectId(null);
+                            setEditError('');
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
                 </div>
-                <button onClick={() => handleUnmapSubject(sub.id)} className="btn-remove" title="Remove Subject">
-                  <Trash2 size={16} />
-                </button>
+                <div className="subject-card-actions">
+                  <button onClick={() => handleEditSubject(sub)} className="btn-edit" title="Edit Subject">
+                    Edit
+                  </button>
+                  <button onClick={() => handleUnmapSubject(sub.id)} className="btn-remove" title="Remove Subject">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
@@ -203,7 +353,7 @@ const SubjectManager = ({ assignedClasses, availableClasses = [] }) => {
 
       <div className="add-subject-section">
         <h4>Add Subject to Profile</h4>
-        
+
         <div className="filters">
           <div className="filter-group">
             <Filter size={14} />
@@ -215,7 +365,7 @@ const SubjectManager = ({ assignedClasses, availableClasses = [] }) => {
               {allowedYears.includes('BE') && <option value="BE">Final Year (BE)</option>}
             </select>
           </div>
-          
+
           <div className="filter-group">
             <Filter size={14} />
             <select value={semesterFilter} onChange={(e) => setSemesterFilter(e.target.value)}>
@@ -233,39 +383,39 @@ const SubjectManager = ({ assignedClasses, availableClasses = [] }) => {
           </div>
         ) : (
           <div className="add-controls">
-          <select 
-            value={selectedClassId} 
-            onChange={(e) => setSelectedClassId(e.target.value)}
-            className="subject-select"
-            style={{flex: '0.5'}}
-          >
-            <option value="">-- Select a Class --</option>
-            {myClasses.map(cls => (
-              <option key={cls.id} value={cls.id}>{cls.name}</option>
-            ))}
-          </select>
+            <select
+              value={selectedClassId}
+              onChange={(e) => setSelectedClassId(e.target.value)}
+              className="subject-select"
+              style={{ flex: '0.5' }}
+            >
+              <option value="">-- Select a Class --</option>
+              {myClasses.map(cls => (
+                <option key={cls.id} value={cls.id}>{cls.name}</option>
+              ))}
+            </select>
 
-          <select 
-            value={selectedSubjectId} 
-            onChange={(e) => setSelectedSubjectId(e.target.value)}
-            className="subject-select"
-          >
-            <option value="">-- Select a Subject --</option>
-            {subjects.map(sub => (
-              <option key={sub.id} value={sub.id}>
-                {sub.name} ({sub.code}) - {sub.year}
-              </option>
-            ))}
-          </select>
-          
-          <button 
-            className="btn-add" 
-            onClick={handleMapSubject}
-            disabled={!selectedSubjectId || !selectedClassId}
-          >
-            <Plus size={16} /> Add Subject
-          </button>
-        </div>
+            <select
+              value={selectedSubjectId}
+              onChange={(e) => setSelectedSubjectId(e.target.value)}
+              className="subject-select"
+            >
+              <option value="">-- Select a Subject --</option>
+              {subjects.map(sub => (
+                <option key={sub.id} value={sub.id}>
+                  {sub.name} ({sub.code}) - {sub.year}
+                </option>
+              ))}
+            </select>
+
+            <button
+              className="btn-add"
+              onClick={handleMapSubject}
+              disabled={!selectedSubjectId || !selectedClassId}
+            >
+              <Plus size={16} /> Add Subject
+            </button>
+          </div>
         )}
       </div>
     </div>
