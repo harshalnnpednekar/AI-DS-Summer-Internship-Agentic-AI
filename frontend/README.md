@@ -46,6 +46,8 @@ We have moved away from basic dashboards to highly descriptive, workflow-driven 
 - **Vertical Step-by-Step UI**: The Defaulter Management page now includes a dedicated vertical workflow explaining exactly how attendance is calculated, replacing vague explanations with detailed, inline-bolded text and circular badges.
 - **Data Granularity**: Displays separate columns for Theory, Practical, and Total attendance, natively ignoring missing practicals for students without them (N/A).
 - **Dynamic Attendance Tracking UI**: Features a robust, native collapsible HTML5 dropdown (accordion) layout that sorts attendance records intelligently by Academic Year (FE, SE, TE, BE), Class, and Faculty. It also dynamically adapts the view structure based on whether the logged-in user is an HOD or a Faculty member to remove redundant groupings.
+- **Bespoke Time Picker Component**: Replaced native browser date-time limitations with a highly customized 12-hour AM/PM time picker built using equidistant flexbox inputs to guarantee a perfect layout and exact string formatting across all OS locales.
+- **Dynamic Form Resolution**: The attendance entry form automatically requests contextual mappings from the backend to calculate the active semester dynamically based on the current month and the selected class.
 - **Bulk Email Broadcast**: Integrates a seamless UI for selecting multiple defaulter students and dispatching warning emails to them in a single action directly from the dashboard.
 - **Form Validation Constraints**: Validates absentee inputs dynamically to ensure integrity during attendance entry, while allowing optional lecture topics for smoother workflow.
 

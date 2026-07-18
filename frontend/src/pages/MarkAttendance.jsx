@@ -10,20 +10,22 @@ const MarkAttendance = () => {
   const [absentees, setAbsentees] = useState([]);
   const [currentRoll, setCurrentRoll] = useState('');
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [timeSlot, setTimeSlot] = useState('');
-  const [sessionType, setSessionType] = useState('Theory');
+  const [startHour, setStartHour] = useState('10');
+  const [startMin, setStartMin] = useState('00');
+  const [startAmPm, setStartAmPm] = useState('AM');
+  const [endHour, setEndHour] = useState('11');
+  const [endMin, setEndMin] = useState('00');
+  const [endAmPm, setEndAmPm] = useState('AM');
+  const [sessionType, setSessionType] = useState('');
   const [semester, setSemester] = useState('');
   const [currentSemesterNum, setCurrentSemesterNum] = useState(null);
   
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState('');
-  const [selectedSemester, setSelectedSemester] = useState('');
 
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
-  const [academicYears, setAcademicYears] = useState([]);
-  const [semesters, setSemesters] = useState([]);
+  const [mappings, setMappings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitSuccess, setSubmitSuccess] = useState('');
   const [submitError, setSubmitError] = useState('');
@@ -39,27 +41,45 @@ const MarkAttendance = () => {
         });
         const data = await response.json();
         if (data.success) {
-          const fetchedClasses = data.data.classes || [];
+          let fetchedClasses = data.data.classes || [];
           const fetchedSubjects = data.data.subjects || [];
-          const fetchedAcademicYears = data.data.academic_years || [];
-          const fetchedSemesters = data.data.semesters || [];
-          
-          if (fetchedClasses.length === 0) {
-            alert("Warning: You do not have any classes or subjects assigned to you. Please contact HOD to map subjects to your profile.");
+
+          // ── Filter classes to only the faculty's assigned ones ──
+          const userRole = localStorage.getItem('userRole');
+          if (userRole !== 'HOD') {
+            // Fetch the current user profile to get assigned_classes
+            try {
+              const profileRes = await fetch('/api/auth/me', {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              const profileData = await profileRes.json();
+              if (profileData.success && profileData.data.assigned_classes) {
+                // Parse "SE-A, TE-B" or "{SE-A,TE-B}" format
+                const assignedStr = profileData.data.assigned_classes
+                  .replace(/[{}]/g, '').toUpperCase();
+                const assignedList = assignedStr
+                  .split(',')
+                  .map(s => s.trim())
+                  .filter(Boolean);
+
+                if (assignedList.length > 0) {
+                  fetchedClasses = fetchedClasses.filter(c =>
+                    assignedList.includes(c.name.toUpperCase())
+                  );
+                }
+              }
+            } catch (profileErr) {
+              console.warn('Could not fetch profile for class filtering', profileErr);
+            }
           }
-          
+
+          if (fetchedClasses.length === 0) {
+            alert("Warning: You do not have any classes assigned to you. Please contact HOD to map classes to your profile.");
+          }
+
           setClasses(fetchedClasses);
           setSubjects(fetchedSubjects);
-          setAcademicYears(fetchedAcademicYears);
-          setSemesters(fetchedSemesters);
-          
-          // Set default values if available
-          if (fetchedAcademicYears.length > 0) {
-            setSelectedAcademicYear(fetchedAcademicYears[fetchedAcademicYears.length - 1]);
-          }
-          if (fetchedSemesters.length > 0) {
-            setSelectedSemester(fetchedSemesters[0]);
-          }
+          setMappings(data.data.mappings || []);
         } else {
           console.error("API returned error:", data);
           alert("Could not load classes: " + (data.error || "Unknown error"));
@@ -73,6 +93,7 @@ const MarkAttendance = () => {
     };
     fetchFormMeta();
   }, []);
+
 
   useEffect(() => {
     if (totalStudents) {
@@ -130,36 +151,16 @@ const MarkAttendance = () => {
     if (cls) setTotalStudents(cls.total_students);
   };
 
-  const handleTimeSlotChange = (e) => {
-    // Remove all non-digits
-    let val = e.target.value.replace(/[^0-9]/g, '');
-    if (val.length > 8) val = val.substring(0, 8);
-    
-    let formatted = '';
-    if (val.length > 0) formatted += val.substring(0, 2);
-    if (val.length > 2) formatted += ':' + val.substring(2, 4);
-    if (val.length > 4) formatted += ' - ' + val.substring(4, 6);
-    if (val.length > 6) formatted += ':' + val.substring(6, 8);
-    
-    setTimeSlot(formatted);
-  };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError('');
     setSubmitSuccess('');
     
-    // Validate academic year and semester
-    if (!selectedAcademicYear) {
-      setSubmitError('Academic Year is required');
-      return;
-    }
-    if (!selectedSemester) {
-      setSubmitError('Semester is required');
-      return;
-    }
-    
     try {
+      const finalTimeSlot = `${startHour.padStart(2, '0')}:${startMin.padStart(2, '0')} ${startAmPm} - ${endHour.padStart(2, '0')}:${endMin.padStart(2, '0')} ${endAmPm}`;
+
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/attendance/submit', {
         method: 'POST',
@@ -171,14 +172,12 @@ const MarkAttendance = () => {
           class_id: selectedClass,
           subject_id: selectedSubject,
           lecture_date: date,
-          time_slot: timeSlot,
+          time_slot: finalTimeSlot,
           topic_covered: topic,
           total_students_enrolled: parseInt(totalStudents),
           students_present_count: parseInt(studentsPresent),
           absentee_roll_numbers: absentees,
-          session_type: sessionType,
-          academic_year: selectedAcademicYear,
-          semester: selectedSemester
+          session_type: sessionType
         })
       });
       const data = await response.json();
@@ -190,16 +189,14 @@ const MarkAttendance = () => {
         setAbsentees([]);
         setCurrentRoll('');
         setDate(new Date().toISOString().split('T')[0]);
-        setTimeSlot('');
+        setStartHour('10');
+        setStartMin('00');
+        setStartAmPm('AM');
+        setEndHour('11');
+        setEndMin('00');
+        setEndAmPm('AM');
         setSelectedClass('');
         setSelectedSubject('');
-        // Reset to defaults but keep the academic year and semester
-        if (academicYears.length > 0) {
-          setSelectedAcademicYear(academicYears[academicYears.length - 1]);
-        }
-        if (semesters.length > 0) {
-          setSelectedSemester(semesters[0]);
-        }
       } else {
         setSubmitError(data.error || "Failed to submit attendance.");
       }
@@ -285,35 +282,28 @@ const MarkAttendance = () => {
               </div>
               <div className="form-group half">
                 <label>Subject <span className="text-danger">*</span></label>
-                <select className="form-select" value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} required>
-                  <option value="" disabled hidden>Select a subject</option>
-                  {subjects.filter(s => {
-                    if (!selectedClass || currentSemesterNum === null) return true;
-                    return s.semester === currentSemesterNum;
-                  }).map(s => (
-                    <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group half">
-                <label>Academic Year <span className="text-danger">*</span></label>
-                <select className="form-select" value={selectedAcademicYear} onChange={(e) => setSelectedAcademicYear(e.target.value)} required>
-                  <option value="" disabled hidden>Select academic year</option>
-                  {academicYears.map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group half">
-                <label>Semester <span className="text-danger">*</span></label>
-                <select className="form-select" value={selectedSemester} onChange={(e) => setSelectedSemester(e.target.value)} required>
-                  <option value="" disabled hidden>Select semester</option>
-                  {semesters.map(sem => (
-                    <option key={sem} value={sem}>Semester {sem}</option>
-                  ))}
+                <select className="form-select" value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} required disabled={!selectedClass}>
+                  <option value="" disabled hidden>
+                    {!selectedClass ? 'Select a class first' : 'Select a subject'}
+                  </option>
+                  {selectedClass && currentSemesterNum !== null && (() => {
+                    const filtered = subjects.filter(s => {
+                      if (s.semester !== currentSemesterNum) return false;
+                      const role = localStorage.getItem('userRole');
+                      if (role !== 'HOD') {
+                        return mappings.some(m => m.class_id === selectedClass && m.subject_id === s.id);
+                      }
+                      return true;
+                    });
+                    
+                    if (filtered.length === 0) {
+                      return <option disabled>No subjects mapped for this class</option>;
+                    }
+                    
+                    return filtered.map(s => (
+                      <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+                    ));
+                  })()}
                 </select>
               </div>
             </div>
@@ -325,15 +315,33 @@ const MarkAttendance = () => {
                   <input type="date" className="form-input" value={date} onChange={(e) => setDate(e.target.value)} required />
                 </div>
               </div>
-              <div className="form-group half">
+              <div className="form-group half time-slot-container">
                 <label>Time Slot</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  placeholder="10:00 - 11:00" 
-                  value={timeSlot} 
-                  onChange={handleTimeSlotChange} 
-                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
+                  {/* Start Time */}
+                  <div style={{ flex: 1, display: 'flex', border: '1px solid #cbd5e1', borderRadius: '8px', overflow: 'hidden', background: '#ffffff', alignItems: 'center', boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)', height: '42px', justifyContent: 'center' }}>
+                    <input type="text" maxLength={2} value={startHour} onChange={(e) => setStartHour(e.target.value.replace(/\D/g, ''))} style={{ flex: 1, width: '100%', textAlign: 'center', border: 'none', background: 'transparent', outline: 'none', fontSize: '15px', color: '#1e293b', fontWeight: '500' }} />
+                    <span style={{ color: '#94a3b8', fontWeight: 'bold' }}>:</span>
+                    <input type="text" maxLength={2} value={startMin} onChange={(e) => setStartMin(e.target.value.replace(/\D/g, ''))} style={{ flex: 1, width: '100%', textAlign: 'center', border: 'none', background: 'transparent', outline: 'none', fontSize: '15px', color: '#1e293b', fontWeight: '500' }} />
+                    <select value={startAmPm} onChange={(e) => setStartAmPm(e.target.value)} style={{ flex: 1, width: '100%', border: 'none', borderLeft: '1px solid #e2e8f0', padding: '0 5px', background: '#f8fafc', outline: 'none', cursor: 'pointer', height: '100%', fontSize: '14px', color: '#475569', fontWeight: '600', textAlign: 'center' }}>
+                      <option>AM</option>
+                      <option>PM</option>
+                    </select>
+                  </div>
+                  
+                  <span style={{ color: '#64748b', fontWeight: 600 }}>to</span>
+                  
+                  {/* End Time */}
+                  <div style={{ flex: 1, display: 'flex', border: '1px solid #cbd5e1', borderRadius: '8px', overflow: 'hidden', background: '#ffffff', alignItems: 'center', boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)', height: '42px', justifyContent: 'center' }}>
+                    <input type="text" maxLength={2} value={endHour} onChange={(e) => setEndHour(e.target.value.replace(/\D/g, ''))} style={{ flex: 1, width: '100%', textAlign: 'center', border: 'none', background: 'transparent', outline: 'none', fontSize: '15px', color: '#1e293b', fontWeight: '500' }} />
+                    <span style={{ color: '#94a3b8', fontWeight: 'bold' }}>:</span>
+                    <input type="text" maxLength={2} value={endMin} onChange={(e) => setEndMin(e.target.value.replace(/\D/g, ''))} style={{ flex: 1, width: '100%', textAlign: 'center', border: 'none', background: 'transparent', outline: 'none', fontSize: '15px', color: '#1e293b', fontWeight: '500' }} />
+                    <select value={endAmPm} onChange={(e) => setEndAmPm(e.target.value)} style={{ flex: 1, width: '100%', border: 'none', borderLeft: '1px solid #e2e8f0', padding: '0 5px', background: '#f8fafc', outline: 'none', cursor: 'pointer', height: '100%', fontSize: '14px', color: '#475569', fontWeight: '600', textAlign: 'center' }}>
+                      <option>AM</option>
+                      <option>PM</option>
+                    </select>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -341,6 +349,7 @@ const MarkAttendance = () => {
               <div className="form-group half">
                 <label>Lecture Type <span className="text-danger">*</span></label>
                 <select className="form-select" value={sessionType} onChange={(e) => setSessionType(e.target.value)} required>
+                  <option value="" disabled hidden>Select lecture type</option>
                   <option value="Theory">Theory</option>
                   <option value="Practical">Practical</option>
                 </select>

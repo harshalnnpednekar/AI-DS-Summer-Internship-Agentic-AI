@@ -11,7 +11,7 @@ import uuid
 from ..database import get_db
 from ..models import User, RoleEnum, Class, Subject, FacultySubjectMapping, LectureAttendance, FacultyProfile
 from ..dependencies import get_current_active_user, RoleChecker
-from ..schemas import StandardResponse, LectureAttendanceSubmit, AcademicYearEnum, SemesterEnum
+from ..schemas import StandardResponse, LectureAttendanceSubmit
 from app.services.excel_agent.excel_sync import excel_sync_agent
 from fastapi.responses import FileResponse, Response
 import os
@@ -32,8 +32,10 @@ async def get_form_meta(
         # User requested all faculties to see all classes in dropdowns
         classes_result = await db.execute(select(Class))
         subjects_result = await db.execute(select(Subject).order_by(Subject.name))
+        mappings_result = await db.execute(select(FacultySubjectMapping).where(FacultySubjectMapping.faculty_id == current_user.id))
         classes = classes_result.scalars().all()
         subjects = subjects_result.scalars().all()
+        mappings = mappings_result.scalars().all()
         
         # Sort classes by academic year sequence (FE, SE, TE, BE)
         def sort_class(c):
@@ -42,18 +44,12 @@ async def get_form_meta(
             return (order.get(prefix, 99), c.name)
             
         classes = sorted(classes, key=sort_class)
-        
-        # Get academic years and semesters from enums
-        academic_years = [year.value for year in AcademicYearEnum]
-        semesters = [sem.value for sem in SemesterEnum]
-        
         return StandardResponse(
             success=True,
             data={
                 "classes": [{"id": str(c.id), "name": c.name, "total_students": c.total_students} for c in classes],
-                "subjects": [{"id": str(s.id), "code": s.code, "name": s.name, "semester": s.semester} for s in subjects],
-                "academic_years": academic_years,
-                "semesters": semesters
+                "subjects": [{"id": str(s.id), "code": s.code, "name": s.name, "year": s.year, "semester": s.semester} for s in subjects],
+                "mappings": [{"class_id": str(m.class_id), "subject_id": str(m.subject_id)} for m in mappings]
             }
         )
 
@@ -66,10 +62,6 @@ async def submit_attendance(
     # Validation
     if attendance.students_present_count > attendance.total_students_enrolled:
          return StandardResponse(success=False, error="Present count cannot exceed total enrolled.", data=None)
-    
-    # Validate academic year and semester are provided
-    if not attendance.academic_year or not attendance.semester:
-        return StandardResponse(success=False, error="Academic year and semester are required.", data=None)
          
     # Security check bypassed as per user request to allow all faculties 
     # to select and submit attendance for all classes/subjects.
@@ -85,9 +77,7 @@ async def submit_attendance(
         total_students_enrolled=attendance.total_students_enrolled,
         students_present_count=attendance.students_present_count,
         absentee_roll_numbers=attendance.absentee_roll_numbers,
-        session_type=attendance.session_type,
-        academic_year=attendance.academic_year.value,
-        semester=attendance.semester.value
+        session_type=attendance.session_type
     )
     db.add(new_attendance)
     await db.commit()
@@ -107,7 +97,6 @@ async def submit_attendance(
     if raw_session_type in ("Lecture", "lecture"): normalized_session_type = "Theory"
     elif raw_session_type in ("Lab", "lab"): normalized_session_type = "Practical"
     else: normalized_session_type = raw_session_type
-
 
     # Build name_lookup dict from all student profiles (roll_number -> name)
     all_sp_res = await db.execute(
