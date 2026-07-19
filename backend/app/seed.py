@@ -196,6 +196,7 @@ async def seed():
                     year_level={"FE": 1, "SE": 2, "TE": 3, "BE": 4}[sub_data["year"]],
                     semester=sub_data["semester"],
                     department_id=str(aids_dept.id),
+                    credits=sub_data.get("credits", 2),
                 )
                 db.add(new_sub)
                 logger.info(f"Created Subject: {sub_data['code']}")
