@@ -84,6 +84,9 @@ def upgrade() -> None:
         sa.Column('full_name', sa.String(length=255), nullable=True)
     )
     op.add_column('faculty_profiles',
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False)
+    )
+    op.add_column('faculty_profiles',
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False, server_onupdate=sa.text('now()'))
     )
     # Backfill department_id for existing faculty
@@ -315,6 +318,7 @@ def downgrade() -> None:
     
     op.drop_constraint('fk_faculty_profiles_department_id', 'faculty_profiles', type_='foreignkey')
     op.drop_column('faculty_profiles', 'updated_at')
+    op.drop_column('faculty_profiles', 'created_at')
     op.drop_column('faculty_profiles', 'full_name')
     op.drop_column('faculty_profiles', 'employee_code')
     op.drop_column('faculty_profiles', 'department_id')
