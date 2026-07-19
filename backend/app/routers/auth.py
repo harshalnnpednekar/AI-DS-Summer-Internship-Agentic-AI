@@ -80,7 +80,7 @@ async def get_me(current_user: User = Depends(get_current_active_user), db: Asyn
                 "bio": profile.bio if hasattr(profile, 'bio') else None,
                 "joining_year": profile.joining_year if hasattr(profile, 'joining_year') else None,
             }
-    elif current_user.role == RoleEnum.student:
+    elif current_user.role == RoleEnum.student:  # type: ignore
         profile_result = await db.execute(
             select(StudentProfile)
             .options(selectinload(StudentProfile.department))
@@ -119,9 +119,9 @@ async def update_me(
     db: AsyncSession = Depends(get_db)
 ):
     if profile_data.first_name is not None:
-        current_user.first_name = profile_data.first_name
+        current_user.first_name = profile_data.first_name  # type: ignore
     if profile_data.last_name is not None:
-        current_user.last_name = profile_data.last_name
+        current_user.last_name = profile_data.last_name  # type: ignore
     
     if current_user.role in [RoleEnum.hod, RoleEnum.faculty]:
         profile_result = await db.execute(
@@ -131,12 +131,12 @@ async def update_me(
         if profile:
             if profile_data.phone is not None and hasattr(profile, 'phone'): profile.phone = profile_data.phone
             if profile_data.bio is not None and hasattr(profile, 'bio'): profile.bio = profile_data.bio
-            if profile_data.designation is not None and hasattr(profile, 'designation'): profile.designation = profile_data.designation
+            if profile_data.designation is not None and hasattr(profile, 'designation'): profile.designation = profile_data.designation  # type: ignore
             if profile_data.department is not None and hasattr(profile, 'department'): profile.department = profile_data.department
             if profile_data.assigned_classes is not None and hasattr(profile, 'assigned_classes'): profile.assigned_classes = profile_data.assigned_classes
-            if profile_data.joining_year is not None and hasattr(profile, 'joining_year'): profile.joining_year = profile_data.joining_year
+            if profile_data.joining_year is not None and hasattr(profile, 'joining_year'): profile.joining_year = profile_data.joining_year  # type: ignore
     
-    elif current_user.role == RoleEnum.student:
+    elif current_user.role == RoleEnum.student:  # type: ignore
         profile_result = await db.execute(
             select(StudentProfile).where(StudentProfile.user_id == current_user.id)
         )
@@ -145,7 +145,7 @@ async def update_me(
             if profile_data.phone is not None and hasattr(profile, 'phone'): profile.phone = profile_data.phone
             if profile_data.bio is not None and hasattr(profile, 'bio'): profile.bio = profile_data.bio
             if profile_data.department is not None and hasattr(profile, 'department'): profile.department = profile_data.department
-            if profile_data.joining_year is not None and hasattr(profile, 'joining_year'): profile.joining_year = profile_data.joining_year
+            if profile_data.joining_year is not None and hasattr(profile, 'joining_year'): profile.joining_year = profile_data.joining_year  # type: ignore
 
     await db.commit()
     return StandardResponse(success=True, data={"message": "Profile updated successfully"}, error=None)
@@ -174,7 +174,7 @@ async def repair_profile(
     profile = FacultyProfile(
         user_id=current_user.id,
         department_id=dept.id,
-        designation="HOD" if current_user.role == RoleEnum.hod else "Faculty",
+        designation="HOD" if current_user.role == RoleEnum.hod else "Faculty",  # type: ignore
         employee_code=None,
         full_name=f"{current_user.first_name} {current_user.last_name}"
     )

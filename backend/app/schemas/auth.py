@@ -27,7 +27,7 @@ class UserSignup(UserBase):
 
 class UserResponse(UserBase):
     id: UUID
-    role: str  # We return it as a string (capitalized) for frontend compatibility
+    role: str  # We return it as a string (capitalized) for frontend compatibility  # type: ignore
     created_at: datetime
     updated_at: datetime
 

@@ -1,9 +1,9 @@
 from uuid import UUID
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Sequence
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
-from .models import Event, Student, SendLog
+from .models import Event, StudentProfile, SendLog
 from fastapi import HTTPException, status
 import logging
 
@@ -14,7 +14,7 @@ async def get_event_by_id(db: AsyncSession, event_id: UUID) -> Event:
     result = await db.execute(select(Event).where(Event.event_id == event_id))
     return result.scalars().first()
 
-async def get_upcoming_events(db: AsyncSession, days: int = 3) -> list[Event]:
+async def get_upcoming_events(db: AsyncSession, days: int = 3) -> Sequence[Event]:
     now = datetime.now().date()
     end_date = now + timedelta(days=days)
     result = await db.execute(
@@ -42,26 +42,23 @@ async def delete_event(db: AsyncSession, event_id: UUID):
     await db.delete(event)
     await db.commit()
 
-# Students CRUD
-async def get_student_by_id(db: AsyncSession, student_id: UUID) -> Optional[Student]:
-    result = await db.execute(select(Student).where(Student.student_id == student_id))
+# Student Profiles CRUD
+async def get_student_by_id(db: AsyncSession, student_id: UUID) -> Optional[StudentProfile]:
+    result = await db.execute(select(StudentProfile).where(StudentProfile.id == student_id))
     return result.scalars().first()
 
-async def get_students(db: AsyncSession, department: Optional[str] = None) -> list[Student]:
-    query = select(Student)
-    if department == "ALL" or department is None:
-        result = await db.execute(query)
-        return result.scalars().all()
-    result = await db.execute(query.where(Student.department == department))
+async def get_students(db: AsyncSession, department: Optional[str] = None) -> Sequence[StudentProfile]:
+    query = select(StudentProfile)
+    result = await db.execute(query)
     return result.scalars().all()
 
-async def create_student(db: AsyncSession, student: Student):
+async def create_student(db: AsyncSession, student: StudentProfile):
     db.add(student)
     await db.commit()
     await db.refresh(student)
     return student
 
-async def update_student(db: AsyncSession, db_student: Student, update_data: dict):
+async def update_student(db: AsyncSession, db_student: StudentProfile, update_data: dict):
     for key, value in update_data.items():
         setattr(db_student, key, value)
     await db.commit()
@@ -82,7 +79,7 @@ async def create_send_log(db: AsyncSession, log: SendLog):
     await db.refresh(log)
     return log
 
-async def get_send_log_by_event(db: AsyncSession, event_id: UUID) -> list[SendLog]:
+async def get_send_log_by_event(db: AsyncSession, event_id: UUID) -> Sequence[SendLog]:
     result = await db.execute(
         select(SendLog).where(SendLog.event_id == event_id)
     )

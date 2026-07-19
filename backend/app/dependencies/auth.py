@@ -18,11 +18,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     )
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
-        email: str = payload.get("sub")
-        role: str = payload.get("role")
+        email: str = payload.get("sub")  # type: ignore
+        role: str = payload.get("role")  # type: ignore
         if email is None:
             raise credentials_exception
-        token_data = TokenData(email=email, role=role)
+        token_data = TokenData(email=email, role=role)  # type: ignore
     except JWTError:
         raise credentials_exception
     
@@ -34,7 +34,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     return user
 
 async def get_current_active_user(current_user: User = Depends(get_current_user)):
-    if not current_user.is_active:
+    if not current_user.is_active:  # type: ignore
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")
     return current_user
 

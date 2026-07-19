@@ -10,12 +10,14 @@ if sys.platform == "win32":
     _loop = asyncio.SelectorEventLoop(_selector)
     asyncio.set_event_loop(_loop)
 
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import events, auth, attendance, users, subjects, certificates
 import logging
 from contextlib import asynccontextmanager
 
+from app.config import settings
 from app.services.scheduler.scheduler import SchedulerManager
 from app.services.scheduler.agent import NotificationWorkflow
 
@@ -55,7 +57,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

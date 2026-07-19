@@ -25,7 +25,7 @@ class Subject(Base):
     @property
     def year(self) -> str:
         """Frontend-compatible programme year label derived from year_level."""
-        return YEAR_LABELS[self.year_level]
+        return YEAR_LABELS[self.year_level]  # type: ignore
 
 class ClassSubject(Base):
     __tablename__ = "class_subjects"

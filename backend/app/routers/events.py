@@ -64,7 +64,7 @@ async def create_events(
         )
 
 
-allow_admin = RoleChecker([RoleEnum.HOD, RoleEnum.FACULTY])
+allow_admin = RoleChecker([RoleEnum.hod, RoleEnum.faculty])
 
 @router.get("/events", response_model=StandardResponse)
 async def get_all_events(
@@ -100,7 +100,7 @@ async def extract_calendar(
     current_user = Depends(allow_admin),
     db: AsyncSession = Depends(get_db)
 ):
-    if not file.filename.endswith(".pdf"):
+    if not file.filename.endswith(".pdf"):  # type: ignore
         raise HTTPException(status_code=400, detail="Only PDF files are allowed.")
 
     temp_file_path = f"temp_{uuid.uuid4()}.pdf"

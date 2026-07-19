@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import (
     Class,
     FacultyProfile,
-    LectureAttendance,
+    AttendanceSession,
     RoleEnum,
     StudentProfile,
     Subject,
@@ -25,7 +25,7 @@ def sort_classes(classes: list[Class]) -> list[Class]:
     def sort_key(c: Class) -> tuple[int, str]:
         prefix = c.name.split("-")[0]
         order = {"FE": 1, "SE": 2, "TE": 3, "BE": 4}
-        return (order.get(prefix, 99), c.name)
+        return (order.get(prefix, 99), c.name)  # type: ignore
 
     return sorted(classes, key=sort_key)
 
@@ -60,11 +60,11 @@ async def submit_lecture_attendance(
     if not payload.academic_year or not payload.semester:
         return False, None, "Academic year and semester are required."
 
-    record = LectureAttendance(
+    record = AttendanceSession(
         faculty_id=faculty.id,
         class_id=payload.class_id,
         subject_id=payload.subject_id,
-        lecture_date=payload.lecture_date,
+        session_date=payload.lecture_date,
         time_slot=payload.time_slot,
         topic_covered=payload.topic_covered,
         total_students_enrolled=payload.total_students_enrolled,
@@ -93,28 +93,28 @@ async def _fetch_lectures(
     db: AsyncSession,
     user: User,
     hod_dept: str | None,
-) -> list[tuple[LectureAttendance, str, str, str, str]]:
+) -> list[tuple[AttendanceSession, str, str, str, str]]:
     query = (
         select(
-            LectureAttendance,
+            AttendanceSession,
             Class.name,
             Subject.name,
             User.first_name,
             User.last_name,
         )
-        .join(Class, LectureAttendance.class_id == Class.id)
-        .join(Subject, LectureAttendance.subject_id == Subject.id)
-        .join(User, LectureAttendance.faculty_id == User.id)
+        .join(Class, AttendanceSession.class_id == Class.id)
+        .join(Subject, AttendanceSession.subject_id == Subject.id)
+        .join(User, AttendanceSession.faculty_id == User.id)
     )
 
-    if user.role == RoleEnum.HOD:
+    if user.role == RoleEnum.hod:  # type: ignore
         if hod_dept:
             query = query.where(Class.department_id == hod_dept)
     else:
-        query = query.where(LectureAttendance.faculty_id == user.id)
+        query = query.where(AttendanceSession.faculty_id == user.id)
 
     result = await db.execute(query)
-    return list(result.all())
+    return list(result.all())  # type: ignore
 
 
 async def _get_class_roll_numbers(
@@ -139,14 +139,14 @@ def _normalize_session_type(session_type: str | None) -> str:
 async def get_attendance_stats(
     db: AsyncSession, user: User
 ) -> dict[str, Any]:
-    hod_dept = await _get_hod_department(db, user) if user.role == RoleEnum.HOD else None
+    hod_dept = await _get_hod_department(db, user) if user.role == RoleEnum.hod else None  # type: ignore
     all_lectures = await _fetch_lectures(db, user, hod_dept)
 
     total_lectures = len(all_lectures)
     total_enrolled = sum(row[0].total_students_enrolled for row in all_lectures)
     total_present = sum(row[0].students_present_count for row in all_lectures)
     avg_attendance = (
-        round((total_present / total_enrolled) * 100) if total_enrolled > 0 else 0
+        round((total_present / total_enrolled) * 100) if total_enrolled > 0 else 0  # type: ignore
     )
 
     class_wise_dict: dict[str, dict[str, Any]] = {}
@@ -181,18 +181,18 @@ async def get_attendance_stats(
         class_wise_stats.append(stats)
 
     recent_query = (
-        select(LectureAttendance, Class.name, Subject.name)
-        .join(Class, LectureAttendance.class_id == Class.id)
-        .join(Subject, LectureAttendance.subject_id == Subject.id)
+        select(AttendanceSession, Class.name, Subject.name)
+        .join(Class, AttendanceSession.class_id == Class.id)
+        .join(Subject, AttendanceSession.subject_id == Subject.id)
     )
-    if user.role == RoleEnum.HOD:
+    if user.role == RoleEnum.hod:  # type: ignore
         if hod_dept:
             recent_query = recent_query.where(Class.department_id == hod_dept)
     else:
         recent_query = recent_query.where(
-            LectureAttendance.faculty_id == user.id
+            AttendanceSession.faculty_id == user.id
         )
-    recent_query = recent_query.order_by(LectureAttendance.created_at.desc())
+    recent_query = recent_query.order_by(AttendanceSession.created_at.desc())
     recent_result = await db.execute(recent_query)
     recent_list = recent_result.all()
 
@@ -211,7 +211,7 @@ async def get_attendance_stats(
                 "class_name": class_name,
                 "subject_name": subject_name,
                 "session_type": lecture.session_type,
-                "date": lecture.lecture_date.strftime("%b %d, %Y"),
+                "date": lecture.session_date.strftime("%b %d, %Y"),
                 "time_slot": lecture.time_slot,
                 "topic": lecture.topic_covered,
                 "present": lecture.students_present_count,
@@ -232,10 +232,10 @@ async def get_attendance_stats(
 
 async def get_defaulters(db: AsyncSession) -> list[dict[str, Any]]:
     lectures_query = await db.execute(
-        select(LectureAttendance, Class.name, Subject.name)
-        .join(Class, LectureAttendance.class_id == Class.id)
-        .join(Subject, LectureAttendance.subject_id == Subject.id)
-        .order_by(Class.name, Subject.name, LectureAttendance.lecture_date)
+        select(AttendanceSession, Class.name, Subject.name)
+        .join(Class, AttendanceSession.class_id == Class.id)
+        .join(Subject, AttendanceSession.subject_id == Subject.id)
+        .order_by(Class.name, Subject.name, AttendanceSession.session_date)
     )
     lectures = lectures_query.all()
     if not lectures:
