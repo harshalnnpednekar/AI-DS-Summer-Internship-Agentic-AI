@@ -48,7 +48,7 @@ def extract_with_pymupdf(pdf_path: str) -> str:
             logger.error(f"Empty PDF: {pdf_path} contains no pages.")
             return ""
             
-        for i, page in enumerate(doc):
+        for i, page in enumerate(doc):  # type: ignore
             try:
                 rect = page.rect
                 clip = fitz.Rect(0, rect.height * 0.08, rect.width, rect.height * 0.92)

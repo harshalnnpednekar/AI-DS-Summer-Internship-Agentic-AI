@@ -31,3 +31,9 @@ backend/.vscode/
 # Generated Excel Sheets
 excel_sheets/
 backend/excel_sheets/
+
+# Uploaded Files
+uploads/
+backend/uploads/
+
+

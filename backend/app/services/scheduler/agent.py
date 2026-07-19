@@ -117,7 +117,7 @@ class NotificationWorkflow:
         return workflow.compile()
 
     async def process_event(self, event: Dict[str, Any], users: List[Dict[str, Any]]) -> Dict[str, Any]:
-        initial_state = NotificationState(
+        initial_state = NotificationState(  # type: ignore
             event=event,
             users=users,
             notification_message="",

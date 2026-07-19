@@ -35,19 +35,19 @@ def build_message(event: dict, user: dict) -> MIMEMultipart:
     message = MIMEMultipart("alternative")
     message["Subject"] = subject
     message["From"] = f"{settings.EMAIL_FROM_NAME} <{settings.EMAIL_FROM}>"
-    message["To"] = user.get("email")
+    message["To"] = user.get("email")  # type: ignore
 
     message.attach(MIMEText(html_body, "html"))
     return message
 
 def _send_email_sync(recipient: str, message: MIMEMultipart) -> bool:
     try:
-        with smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT, timeout=15) as server:
+        with smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT, timeout=15) as server:  # type: ignore
             if settings.SMTP_USE_TLS:
                 server.starttls()
             if settings.SMTP_USER and settings.SMTP_PASSWORD:
                 server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
-            server.sendmail(settings.EMAIL_FROM, recipient, message.as_string())
+            server.sendmail(settings.EMAIL_FROM, recipient, message.as_string())  # type: ignore
         logger.info("Email sent successfully to %s", recipient)
         return True
     except Exception as e:

@@ -110,7 +110,7 @@ subjects_data = [
 ]
 
 
-async def get_or_create(db, model, filters: dict, defaults: dict = None):
+async def get_or_create(db, model, filters: dict, defaults: dict = None):  # type: ignore
     """Get an existing record or create a new one (idempotent)."""
     stmt = select(model)
     for k, v in filters.items():
@@ -201,7 +201,7 @@ async def seed():
                 logger.info(f"Created Subject: {sub_data['code']}")
             else:
                 existing.name       = sub_data["name"]
-                existing.year_level = {"FE": 1, "SE": 2, "TE": 3, "BE": 4}[sub_data["year"]]
+                existing.year_level = {"FE": 1, "SE": 2, "TE": 3, "BE": 4}[sub_data["year"]]  # type: ignore
                 existing.semester   = sub_data["semester"]
                 logger.info(f"Exists  Subject: {sub_data['code']}")
         await db.flush()

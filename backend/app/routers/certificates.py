@@ -133,8 +133,8 @@ async def delete_certificate(
         return StandardResponse(success=False, data=None, error="Only pending certificates can be deleted.")
 
     # Remove file from disk
-    if os.path.exists(cert.file_path):
-        os.remove(cert.file_path)
+    if os.path.exists(cert.file_path):  # type: ignore
+        os.remove(cert.file_path)  # type: ignore
 
     await db.delete(cert)
     await db.commit()
