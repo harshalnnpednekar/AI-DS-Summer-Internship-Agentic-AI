@@ -225,7 +225,6 @@ async def seed():
         hod_profile = await get_or_create(
             db, FacultyProfile, {"user_id": hod_user.id},
             {
-                "department":    "AIDS",
                 "department_id": aids_dept.id,
                 "designation":   "HOD",
                 "full_name":     "HOD AIDS",
@@ -257,7 +256,6 @@ async def seed():
             fp = await get_or_create(
                 db, FacultyProfile, {"user_id": fu.id},
                 {
-                    "department":    "AIDS",
                     "department_id": aids_dept.id,
                     "designation":   fd["designation"],
                     "full_name":     f"{fd['first_name']} {fd['last_name']}",
@@ -293,7 +291,6 @@ async def seed():
                 db, StudentProfile, {"roll_number": sd["roll"]},
                 {
                     "user_id":          su.id,
-                    "department":       "AIDS",
                     "department_id":    aids_dept.id,
                     "full_name":        f"{sd['first_name']} {sd['last_name']}",
                     "admission_year":   2021,
