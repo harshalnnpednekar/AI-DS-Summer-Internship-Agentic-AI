@@ -63,7 +63,7 @@ def upgrade() -> None:
     op.add_column('users', sa.Column('is_active', sa.Boolean(), nullable=False, server_default='true'))
     # Note: RoleEnum values are now lowercase (student/faculty/hod/admin).
     # Existing data migration is handled by seed script re-seeding from scratch.
-    
+
     # 4. Add department_id FK to faculty_profiles and student_profiles
     # First insert a placeholder "General" department
     op.execute(
@@ -72,7 +72,7 @@ def upgrade() -> None:
     op.execute(
         "INSERT INTO departments (id, code, name) VALUES (gen_random_uuid(), 'AIDS', 'Artificial Intelligence and Data Science') ON CONFLICT (code) DO NOTHING"
     )
-    
+
     # Add department_id to faculty_profiles (using "GENERAL" as fallback)
     op.add_column('faculty_profiles',
         sa.Column('department_id', sa.Uuid(), nullable=True)
@@ -96,6 +96,8 @@ def upgrade() -> None:
     )
     # Create FK
     op.create_foreign_key('fk_faculty_profiles_department_id', 'faculty_profiles', 'departments', ['department_id'], ['id'])
+    # Drop legacy NOT NULL string "department" column now superseded by department_id FK
+    op.drop_column('faculty_profiles', 'department')
 
     # Add department_id to student_profiles
     op.add_column('student_profiles',
@@ -122,6 +124,8 @@ def upgrade() -> None:
         "WHERE sp.department_id IS NULL"
     )
     op.create_foreign_key('fk_student_profiles_department_id', 'student_profiles', 'departments', ['department_id'], ['id'])
+    # Drop legacy NOT NULL string "department" column now superseded by department_id FK
+    op.drop_column('student_profiles', 'department')
 
     # 5. Modify classes table - add new relational columns and convert department_id to UUID
     op.drop_column('classes', 'department_id')
@@ -132,7 +136,7 @@ def upgrade() -> None:
     op.add_column('classes', sa.Column('division', sa.String(length=10), nullable=True))
     op.add_column('classes', sa.Column('semester', sa.Integer(), nullable=True))
     op.add_column('classes', sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False))
-    
+
     # 6. Modify subjects table - add credits, is_active, updated_at, and convert department_id to UUID
     op.drop_column('subjects', 'department_id')
     op.add_column('subjects', sa.Column('department_id', sa.Uuid(), nullable=False))
@@ -286,7 +290,7 @@ def downgrade() -> None:
     op.drop_table('attendance_records')
     op.drop_table('attendance_sessions')
     op.drop_table('class_subjects')
-    
+
     # Remove added columns from subjects and restore department_id string
     op.drop_constraint('fk_subjects_department_id', 'subjects', type_='foreignkey')
     op.drop_column('subjects', 'department_id')
@@ -296,7 +300,7 @@ def downgrade() -> None:
     op.drop_column('subjects', 'is_active')
     op.drop_column('subjects', 'semester')
     op.drop_column('subjects', 'credits')
-    
+
     # Remove added columns from classes and restore department_id string
     op.drop_constraint('fk_classes_department_id', 'classes', type_='foreignkey')
     op.drop_column('classes', 'department_id')
@@ -307,22 +311,24 @@ def downgrade() -> None:
     op.drop_column('classes', 'year_level')
     op.drop_column('classes', 'academic_year_id')
 
-    # Remove FKs and columns from student/faculty profiles
+    # Remove FKs and columns from student/faculty profiles, restore legacy department string
     op.drop_constraint('fk_student_profiles_department_id', 'student_profiles', type_='foreignkey')
+    op.add_column('student_profiles', sa.Column('department', sa.String(length=100), nullable=True))
     op.drop_column('student_profiles', 'updated_at')
     op.drop_column('student_profiles', 'status')
     op.drop_column('student_profiles', 'graduation_year')
     op.drop_column('student_profiles', 'admission_year')
     op.drop_column('student_profiles', 'full_name')
     op.drop_column('student_profiles', 'department_id')
-    
+
     op.drop_constraint('fk_faculty_profiles_department_id', 'faculty_profiles', type_='foreignkey')
+    op.add_column('faculty_profiles', sa.Column('department', sa.String(length=100), nullable=True))
     op.drop_column('faculty_profiles', 'updated_at')
     op.drop_column('faculty_profiles', 'created_at')
     op.drop_column('faculty_profiles', 'full_name')
     op.drop_column('faculty_profiles', 'employee_code')
     op.drop_column('faculty_profiles', 'department_id')
-    
+
     # Remove from users
     op.drop_column('users', 'is_active')
 
