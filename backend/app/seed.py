@@ -294,8 +294,6 @@ async def seed():
                     "department_id":    aids_dept.id,
                     "full_name":        f"{sd['first_name']} {sd['last_name']}",
                     "admission_year":   2021,
-                    "current_semester": "3",
-                    "division":         "A",
                     "status":           "enrolled",
                 }
             )
