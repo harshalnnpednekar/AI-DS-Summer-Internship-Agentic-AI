@@ -136,10 +136,10 @@ def upgrade() -> None:
     op.create_foreign_key('fk_subjects_department_id', 'subjects', 'departments', ['department_id'], ['id'], ondelete='CASCADE')
     op.add_column('subjects', sa.Column('credits', sa.Integer(), nullable=False, server_default='3'))
     conn = op.get_bind()
-inspector = sa.inspect(conn)
-subject_cols = [c["name"] for c in inspector.get_columns("subjects")]
-if "semester" not in subject_cols:
-    op.add_column('subjects', sa.Column('semester', sa.Integer(), nullable=False, server_default='1'))
+    inspector = sa.inspect(conn)
+    subject_cols = [c["name"] for c in inspector.get_columns("subjects")]
+    if "semester" not in subject_cols:
+        op.add_column('subjects', sa.Column('semester', sa.Integer(), nullable=False, server_default='1'))
     op.add_column('subjects', sa.Column('is_active', sa.Boolean(), nullable=False, server_default='true'))
     op.add_column('subjects', sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False))
     op.add_column('subjects', sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False))
