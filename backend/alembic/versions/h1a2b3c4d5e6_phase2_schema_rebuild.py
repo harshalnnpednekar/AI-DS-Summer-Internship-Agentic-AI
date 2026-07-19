@@ -116,6 +116,9 @@ def upgrade() -> None:
         sa.Column('status', sa.String(length=20), nullable=False, server_default='enrolled')
     )
     op.add_column('student_profiles',
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False)
+    )
+    op.add_column('student_profiles',
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False)
     )
     # Backfill department_id
@@ -315,6 +318,7 @@ def downgrade() -> None:
     op.drop_constraint('fk_student_profiles_department_id', 'student_profiles', type_='foreignkey')
     op.add_column('student_profiles', sa.Column('department', sa.String(length=100), nullable=True))
     op.drop_column('student_profiles', 'updated_at')
+    op.drop_column('student_profiles', 'created_at')
     op.drop_column('student_profiles', 'status')
     op.drop_column('student_profiles', 'graduation_year')
     op.drop_column('student_profiles', 'admission_year')
