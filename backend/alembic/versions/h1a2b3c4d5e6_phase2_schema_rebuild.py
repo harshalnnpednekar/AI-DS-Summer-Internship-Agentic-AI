@@ -121,6 +121,8 @@ def upgrade() -> None:
     op.add_column('student_profiles',
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False)
     )
+    op.drop_column('student_profiles', 'current_semester')
+    op.drop_column('student_profiles', 'division')
     # Backfill department_id
     op.execute(
         "UPDATE student_profiles sp SET department_id = (SELECT id FROM departments WHERE code = 'AIDS' LIMIT 1) "
@@ -317,6 +319,8 @@ def downgrade() -> None:
     # Remove FKs and columns from student/faculty profiles, restore legacy department string
     op.drop_constraint('fk_student_profiles_department_id', 'student_profiles', type_='foreignkey')
     op.add_column('student_profiles', sa.Column('department', sa.String(length=100), nullable=True))
+    op.add_column('student_profiles', sa.Column('current_semester', sa.String(length=20), nullable=True))
+    op.add_column('student_profiles', sa.Column('division', sa.String(length=50), nullable=True))
     op.drop_column('student_profiles', 'updated_at')
     op.drop_column('student_profiles', 'created_at')
     op.drop_column('student_profiles', 'status')
