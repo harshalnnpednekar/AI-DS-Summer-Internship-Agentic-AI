@@ -3,6 +3,10 @@
         {
             "source": "/api/:path*",
             "destination": "https://ai-ds-summer-internship-agentic-ai.onrender.com/api/:path*"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
         }
     ]
 }
