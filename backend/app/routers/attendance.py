@@ -9,7 +9,7 @@ from typing import List
 import uuid
 
 from ..database import get_db
-from ..models import User, RoleEnum, Class, Subject, AttendanceSession, FacultyProfile, ClassSubject
+from ..models import User, RoleEnum, Class, Subject, AttendanceSession, FacultyProfile, ClassSubject, Enrollment
 from ..dependencies import get_current_active_user, RoleChecker
 from ..schemas import StandardResponse, LectureAttendanceSubmit
 from app.services.excel_agent.excel_sync import excel_sync_agent
@@ -440,7 +440,29 @@ async def get_my_attendance(
         return StandardResponse(success=False, data=None, error="Student profile not found.")
 
     roll = str(student_profile.roll_number)
-    division = student_profile.division
+
+    # division now lives on Class, reached via the student's active Enrollment
+    enrollment_result = await db.execute(
+        select(Class.name).join(Enrollment, Enrollment.class_id == Class.id)
+        .where(Enrollment.student_id == student_profile.id, Enrollment.status == "active")
+        .order_by(Enrollment.enrolled_at.desc())
+    )
+    division = enrollment_result.scalars().first()
+
+    if not division:
+        return StandardResponse(success=True, data={
+            "roll_number": roll,
+            "division": None,
+            "overall_attendance": 0,
+            "total_theory": 0,
+            "total_practical": 0,
+            "attended_theory": 0,
+            "attended_practical": 0,
+            "subject_wise": [],
+            "recent_lectures": [],
+            "is_defaulter": False,
+            "defaulter_status": None
+        }, error=None)
 
     # Fetch all lectures for this student's class division
     lectures_result = await db.execute(
